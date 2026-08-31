@@ -212,7 +212,6 @@ FasterEdgeOS/
 │   ├── minimal_overlay/          # overlay bundle
 │   ├── minimal_rootfs/           # 基础 rootfs
 │   └── common.sh                 # 构建公共函数
-├── CONTRIBUTING.md               # 开发和提交规范
 ├── LICENSE                       # 开源许可证
 └── README.md                     # 中文项目说明
 ```
