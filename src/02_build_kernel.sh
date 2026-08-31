@@ -86,11 +86,19 @@ else
   # 启用 EFI stub
   sed -i "s/.*CONFIG_EFI_STUB.*/CONFIG_EFI_STUB=y/" .config
 
-  # 请求固件在重启后清除 RAM 中的内容（4.14+）。
-  echo "CONFIG_RESET_ATTACK_MITIGATION=y" >> .config
+  # --- 安全加固（内核 6.6 有效选项） ---
 
-  # 禁用 Apple Properties（对 Mac 有用，但一般情况下没有用处）
-  echo "CONFIG_APPLE_PROPERTIES=n" >> .config
+  # 启用栈保护（默认已 y，这里显式保证）。
+  sed -i "s/.*CONFIG_STACKPROTECTOR.*/CONFIG_STACKPROTECTOR=y/" .config
+  sed -i "s/.*CONFIG_STACKPROTECTOR_STRONG.*/CONFIG_STACKPROTECTOR_STRONG=y/" .config
+
+  # 启用 FORTIFY_SOURCE，加固常见字符串/内存操作函数。
+  sed -i "s/.*CONFIG_FORTIFY_SOURCE.*/CONFIG_FORTIFY_SOURCE=y/" .config
+
+  # 限制非特权用户读取内核日志（dmesg）。
+  sed -i "s/.*CONFIG_SECURITY_DMESG_RESTRICT.*/CONFIG_SECURITY_DMESG_RESTRICT=y/" .config
+
+  # 6.6 已移除 RESET_ATTACK_MITIGATION / APPLE_PROPERTIES，不再设置。
 
   # 检查是否在构建 64 位内核。
   if [ "`grep "CONFIG_X86_64=y" .config`" = "CONFIG_X86_64=y" ] ; then
