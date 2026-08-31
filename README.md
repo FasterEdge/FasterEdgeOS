@@ -49,19 +49,23 @@ FasterEdgeOS ISO / rootfs 镜像
 
 构建主机建议使用 Debian/Ubuntu Linux。macOS、Windows 建议通过 Linux 虚拟机或 CI 构建。
 
+> **工具链要求**：当前 glibc 2.44 需要 GCC 12.1+、binutils 2.39+、GNU make 4.0+。
+> 推荐使用 Ubuntu 24.04+（gcc 13.2 / binutils 2.42 / make 4.3）；Ubuntu 22.04 需
+> 自行安装新版 gcc/binutils，否则 glibc 构建会失败。
+
 ### 1. 安装依赖
 
 ```bash
 sudo apt update
 sudo apt install -y \
-  wget make gawk gcc bc bison flex xorriso \
+  wget make gawk gcc bc bison flex xorriso rsync \
   libelf-dev libssl-dev file cpio gzip xz-utils
 ```
 
 AArch64 构建和 QEMU 测试还需要：
 
 ```bash
-sudo apt install -y qemu-system-aarch64 rsync bzip2 dosfstools
+sudo apt install -y qemu-system-aarch64 bzip2 dosfstools
 ```
 
 ### 2. 配置构建参数
@@ -199,7 +203,50 @@ FasterEdge2Api 将作为系统管理入口，逐步提供：
 
 所有远程管理操作应使用 HTTPS，并只允许经过授权的管理员令牌执行。
 
-## 七、目录说明
+## 七、安全说明
+
+### 1. 组件版本与已知 CVE 修复情况
+
+| 组件 | 旧版本（含已知漏洞） | 现版本 | 说明 |
+| --- | --- | --- | --- |
+| Linux 内核 | 5.18.3（2022-11 EOL，无安全维护） | 6.6.155（LTS，维护至 2026-12） | 修复海量内核 CVE |
+| GNU C Library | 2.35（CVE-2023-4911 Looney Tunables、CVE-2024-2961 iconv 溢出、CVE-2025-4802 LD_LIBRARY_PATH 等） | 2.44（最新稳定版） | 修复上述所有已公开漏洞 |
+| BusyBox | 1.34.1（CVE-2022-48174 ash 栈溢出（CRITICAL）、CVE-2022-28391 netstat RCE 等） | 1.37.0（最新稳定版） | 1.38.0 尚为 unstable，暂不采用 |
+| Syslinux | 6.03（2014，上游已停止维护） | 6.03（保持不变） | 无更新版本；仅 BIOS 引导阶段使用，风险面小 |
+| Systemd-boot | 2018 快照（上游 fork） | 2018 快照（保持不变） | 无更新版本；仅 UEFI 引导阶段使用 |
+
+### 2. 安全加固措施（本仓库已实施）
+
+- 构建 CFLAGS 移除了 `-fno-stack-protector` 与 `-U_FORTIFY_SOURCE`，改为启用
+  `-fstack-protector-strong`（栈保护），BusyBox 构建时另行开启 `-D_FORTIFY_SOURCE=2`。
+- 内核构建（`src/02_build_kernel.sh`）显式启用 `STACKPROTECTOR_STRONG`、
+  `FORTIFY_SOURCE` 与 `SECURITY_DMESG_RESTRICT`（限制非特权用户读取内核日志）。
+- CI 构建环境补充 `rsync`（内核 6.6+ `headers_install` 所需）。
+
+### 3. 已知设计取舍（Live 系统特性）
+
+- **root 无密码**：系统默认以无密码 root 直接进入 shell（传统 Live 系统设计）。
+  只建议在隔离环境或开发调试中使用。生产部署请至少执行：
+
+  ```sh
+  passwd root
+  ```
+
+  并将 `/etc/passwd` / `/etc/shadow` 写入持久化介质（见下文）。
+- **多虚拟终端 root 会话**：init 默认在 `tty1~4` 各启动一个 root shell。
+  如需收紧，可编辑 `/etc/inittab` 删除多余的 `tty2~tty4` respawn 行。
+- **Dropbear（SSH）未默认启用**：`OVERLAY_BUNDLES` 默认不含 `dropbear`，
+  无网络登录暴露面；启用时请务必设置 root 密码并改用密钥认证。
+
+### 4. 持久化与更新
+
+- Live 模式（`OVERLAY_TYPE=folder` + `OVERLAY_LOCATION=iso`）下，除非提供可写
+  的 `fasteredgeos/rootfs+work` 分区或 `fasteredgeos.img` 镜像，否则所有修改在
+  重启后丢失。生产环境请使用可写持久化介质，或在升级流程中重建镜像。
+- 远程更新必须遵循“下载 → SHA256/签名校验 → 空间检查 → 安装 → 健康检查 →
+  切换或回滚”流程（详见“系统管理与远程更新”章节），禁止覆盖当前运行版本。
+
+## 八、目录说明
 
 ```text
 FasterEdgeOS/
@@ -216,7 +263,7 @@ FasterEdgeOS/
 └── README.md                     # 中文项目说明
 ```
 
-## 八、开发约定
+## 九、开发约定
 
 - 所有新增系统组件优先实现为 `src/minimal_overlay/bundles/` 下的独立 bundle。
 - 服务必须兼容 BusyBox init，不默认依赖 systemd。
@@ -225,7 +272,7 @@ FasterEdgeOS/
 - 管理 API 默认只监听可信网络；生产环境必须启用 TLS。
 - 修改构建流程后至少执行 shell 语法检查和 QEMU/Docker 基础验证。
 
-## 九、相关项目
+## 十、相关项目
 
 - [FasterEdge](https://github.com/FasterEdge/FasterEdge)：边缘计算框架。
 - [FasterEdge2Api](https://github.com/FasterEdge/FasterEdge2Api)：FasterEdge 集群拓扑与系统管理 HTTP API。

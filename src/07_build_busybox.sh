@@ -40,7 +40,8 @@ fi
 sed -i "s|.*CONFIG_SYSROOT.*|CONFIG_SYSROOT=\"$SYSROOT\"|" .config
 
 # 配置编译器标志，并显式将 Busybox 与 sysroot 中的 GLIBC 链接。
-sed -i "s|.*CONFIG_EXTRA_CFLAGS.*|CONFIG_EXTRA_CFLAGS=\"$CFLAGS -L$SYSROOT/lib\"|" .config
+# 在此为 Busybox 单独启用 FORTIFY（不放在全局 CFLAGS，避免影响 glibc 自身构建）。
+sed -i "s|.*CONFIG_EXTRA_CFLAGS.*|CONFIG_EXTRA_CFLAGS=\"$CFLAGS -D_FORTIFY_SOURCE=2 -L$SYSROOT/lib\"|" .config
 
 # 以“并行任务数 = 处理器数量”的优化方式编译 busybox。
 echo "正在构建 Busybox。"

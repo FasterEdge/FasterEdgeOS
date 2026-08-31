@@ -88,15 +88,20 @@ else
 
   # --- 安全加固（内核 6.6 有效选项） ---
 
-  # 启用栈保护（默认已 y，这里显式保证）。
-  sed -i "s/.*CONFIG_STACKPROTECTOR.*/CONFIG_STACKPROTECTOR=y/" .config
-  sed -i "s/.*CONFIG_STACKPROTECTOR_STRONG.*/CONFIG_STACKPROTECTOR_STRONG=y/" .config
+  # 启用强栈保护（强模式覆盖更多函数；自动依赖并启用 STACKPROTECTOR）。
+  # 注意：使用精确锚定，避免误匹配 CONFIG_STACKPROTECTOR 或其它派生符号。
+  sed -i "s/^# CONFIG_STACKPROTECTOR_STRONG is not set/CONFIG_STACKPROTECTOR_STRONG=y/; s/^CONFIG_STACKPROTECTOR_STRONG=.*/CONFIG_STACKPROTECTOR_STRONG=y/" .config
+  grep -q "^CONFIG_STACKPROTECTOR_STRONG=y" .config || echo "CONFIG_STACKPROTECTOR_STRONG=y" >> .config
+  grep -q "^CONFIG_STACKPROTECTOR=y" .config || echo "CONFIG_STACKPROTECTOR=y" >> .config
 
   # 启用 FORTIFY_SOURCE，加固常见字符串/内存操作函数。
-  sed -i "s/.*CONFIG_FORTIFY_SOURCE.*/CONFIG_FORTIFY_SOURCE=y/" .config
+  # 精确锚定：避免把依赖符号 CONFIG_ARCH_HAS_FORTIFY_SOURCE 误改成 CONFIG_FORTIFY_SOURCE。
+  sed -i "s/^# CONFIG_FORTIFY_SOURCE is not set/CONFIG_FORTIFY_SOURCE=y/; s/^CONFIG_FORTIFY_SOURCE=.*/CONFIG_FORTIFY_SOURCE=y/" .config
+  grep -q "^CONFIG_FORTIFY_SOURCE=y" .config || echo "CONFIG_FORTIFY_SOURCE=y" >> .config
 
   # 限制非特权用户读取内核日志（dmesg）。
-  sed -i "s/.*CONFIG_SECURITY_DMESG_RESTRICT.*/CONFIG_SECURITY_DMESG_RESTRICT=y/" .config
+  sed -i "s/^# CONFIG_SECURITY_DMESG_RESTRICT is not set/CONFIG_SECURITY_DMESG_RESTRICT=y/; s/^CONFIG_SECURITY_DMESG_RESTRICT=.*/CONFIG_SECURITY_DMESG_RESTRICT=y/" .config
+  grep -q "^CONFIG_SECURITY_DMESG_RESTRICT=y" .config || echo "CONFIG_SECURITY_DMESG_RESTRICT=y" >> .config
 
   # 6.6 已移除 RESET_ATTACK_MITIGATION / APPLE_PROPERTIES，不再设置。
 

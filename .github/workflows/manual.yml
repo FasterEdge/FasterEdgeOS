@@ -2,7 +2,7 @@ name: 'FasterEdgeOS With Integration Tests'
 on: 'workflow_dispatch'
 jobs:
   fasteredgeos-with-tests:
-    runs-on: 'ubuntu-22.04'    # 当 22.04 不再处于公开测试阶段时，恢复为 'ubuntu-latest'
+    runs-on: 'ubuntu-24.04'    # glibc 2.44 要求 GCC 12.1+/binutils 2.39+，22.04 不满足
     steps:
     - uses: actions/checkout@v2    
     - name: 'Apply Workflow Patches'
