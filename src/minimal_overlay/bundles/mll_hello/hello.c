@@ -1,6 +1,5 @@
 #include <stdio.h>
 
 void main() {
-  printf("Hello MLL! :)\n");
+  printf("Hello FasterEdgeOS! :)\n");
 }
-

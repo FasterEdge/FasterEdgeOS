@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# System initialization sequence:
+# FasterEdgeOS 系统初始化序列：
 #
-# /init (this file)
+# /init (本文件)
 #  |
 #  +--(1) /etc/01_prepare.sh
 #  |
@@ -14,9 +14,9 @@
 #                    |
 #                    +--(1) /etc/04_bootscript.sh
 #                    |       |
-#                    |       +-- /etc/autorun/* (all scripts)
+#                    |       +-- /etc/autorun/* (所有脚本)
 #                    |
-#                    +--(2) /bin/sh (Alt + F1, main console)
+#                    +--(2) /bin/sh (Alt + F1, 主控制台)
 #                    |
 #                    +--(2) /bin/sh (Alt + F2)
 #                    |
@@ -24,34 +24,34 @@
 #                    |
 #                    +--(2) /bin/sh (Alt + F4)
 
-echo -e "Welcome to \\e[1mMinimal \\e[32mLinux \\e[31mLive\\e[0m (/init)"
+echo -e "欢迎使用 FasterEdgeOS (/init)"
 
-# Let's mount all core file systems.
+# 挂载所有核心文件系统。
 /etc/01_prepare.sh
 
-# Print first message on screen.
+# 打印第一段提示。
 cat /etc/msg/init_01.txt
 
-# Wait 5 second or until any ~keyboard key is pressed.
+# 等待 5 秒或任一按键。
 read -t 5 -n1 -s key
 
 if [ ! "$key" = "" ] ; then
-  # Print second message on screen.
+  # 打印第二段提示。
   cat /etc/msg/init_02.txt
 
-  # Set flag which indicates that we have obtained controlling terminal.
+  # 设置标志，表示已获得控制终端。
   export PID1_SHELL=true
 
-  # Interactive shell with controlling tty as PID 1.
+  # 以 PID 1 交互式 Shell 运行（带控制终端）。
   exec setsid cttyhack sh
 fi
 
-# Create new mountpoint in RAM, make it our new root location and overlay it
-# with our storage area (if overlay area exists at all). This operation invokes
-# the script '/etc/03_init.sh' as the new init process.
+# 在内存中创建新的挂载点，将其作为新的根目录，并与存储区域（如果存在
+# overlay 区域）做 overlay 合并。该操作会把脚本 '/etc/03_init.sh' 作为新的
+# init 进程调用。
 exec /etc/02_overlay.sh
 
-echo "(/init) - you can never see this unless there is a serious bug."
+echo "(/init) - 除非存在严重错误，否则你不应看到此行。"
 
-# Wait until any key has been pressed.
+# 等待按键。
 read -n1 -s

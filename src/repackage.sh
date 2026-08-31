@@ -2,10 +2,10 @@
 
 set -e
 
-# This script is useful if you have already built MLL and
-# you want to perform fast repackaging of all components.
+# 此脚本适用于已经构建过 FasterEdgeOS、
+# 想要快速重新打包所有组件的情况。
 #
-# Note: this will also rebuild all overlay bundles.
+# 注意：这也会重建所有 overlay bundles。
 
 ./08_prepare_bundles.sh
 ./09_generate_rootfs.sh

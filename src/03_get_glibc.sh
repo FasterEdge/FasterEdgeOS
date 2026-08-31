@@ -2,24 +2,24 @@
 
 set -e
 
-# Load common properties and functions in the current script.
+# 加载公共属性与函数。
 . ./common.sh
 
-echo "*** GET GLIBC BEGIN ***"
+echo "*** 获取 glibc 开始 ***"
 
-# Read the 'GLIBC_SOURCE_URL' property from '.config'.
+# 从 '.config' 读取 'GLIBC_SOURCE_URL' 属性。
 DOWNLOAD_URL=`read_property GLIBC_SOURCE_URL`
 
-# Grab everything after the last '/' character.
+# 取最后一个 '/' 之后的部分作为归档文件名。
 ARCHIVE_FILE=${DOWNLOAD_URL##*/}
 
-# Download glibc source archive in the 'source' directory.
+# 把 glibc 源码归档下载到 'source' 目录。
 download_source $DOWNLOAD_URL $SOURCE_DIR/$ARCHIVE_FILE
 
-# Extract the glibc sources in the 'work/glibc' directory.
+# 把 glibc 源码解压到 'work/glibc' 目录。
 extract_source $SOURCE_DIR/$ARCHIVE_FILE glibc
 
-# We go back to the main MLL source folder.
+# 返回 FasterEdgeOS 主源码目录。
 cd $SRC_DIR
 
-echo "*** GET GLIBC END ***"
+echo "*** 获取 glibc 结束 ***"

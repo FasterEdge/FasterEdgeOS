@@ -6,23 +6,23 @@ set -e
 
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
-# Change to the ncurses source directory which ls finds, e.g. 'ncurses-6.0'.
+# 切换到 ncurses 源码目录（由 ls 找到），例如 'ncurses-6.0'。
 cd $(ls -d ncurses-*)
 
 if [ -f Makefile ] ; then
-  echo "Preparing '$BUNDLE_NAME' work area. This may take a while."
+  echo "正在准备 '$BUNDLE_NAME' 的工作目录，这可能需要一些时间。"
   make -j $NUM_JOBS clean
 else
-  echo "The clean phase for '$BUNDLE_NAME' has been skipped."
+  echo "已跳过 '$BUNDLE_NAME' 的清理阶段。"
 fi
 
 rm -rf $DEST_DIR
 
-# Remove static library
+# 移除静态库
 sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
 # http://www.linuxfromscratch.org/lfs/view/development/chapter06/ncurses.html
 
-echo "Configuring '$BUNDLE_NAME'."
+echo "正在配置 '$BUNDLE_NAME'。"
 CFLAGS="$CFLAGS" ./configure \
     --prefix=/usr \
     --with-termlib \
@@ -40,35 +40,35 @@ CFLAGS="$CFLAGS" ./configure \
     LDFLAGS=-L$PWD/lib \
     CPPFLAGS="-P"
 
-# Most configuration switches are from AwlsomeAlex
+# 大部分配置开关取自 AwlsomeAlex
 # https://github.com/AwlsomeAlex/AwlsomeLinux/blob/59d59730703b058081a2371076a807590cacb31e/src/overlay_ncurses.sh
 
-# CPPFLAGS fixes a bug with Ubuntu 16.04
+# CPPFLAGS 修复了 Ubuntu 16.04 上的一个 bug
 # https://trac.sagemath.org/ticket/19762
 
-echo "Building '$BUNDLE_NAME'."
+echo "正在编译 '$BUNDLE_NAME'。"
 make -j $NUM_JOBS
 
-echo "Installing '$BUNDLE_NAME'."
+echo "正在安装 '$BUNDLE_NAME'。"
 make -j $NUM_JOBS install DESTDIR=$DEST_DIR
 
-# Symnlink wide character libraries
+# 为宽字符库创建符号链接
 cd $DEST_DIR/usr/lib
 ln -s libncursesw.so.5 libncurses.so.5
 ln -s libncurses.so.5 libncurses.so
 ln -s libtinfow.so.5 libtinfo.so.5
 ln -s libtinfo.so.5 libtinfo.so
 
-echo "Reducing '$BUNDLE_NAME' size."
+echo "正在精简 '$BUNDLE_NAME' 的体积。"
 set +e
 strip -g $DEST_DIR/usr/bin/*
 set -e
 
-# With '--remove-destination' all possibly existing soft links in
-# '$OVERLAY_ROOTFS' will be overwritten correctly.
+# 使用 '--remove-destination' 可正确覆盖
+# '$OVERLAY_ROOTFS' 中可能已存在的软链接。
 cp -r --remove-destination $DEST_DIR/usr/* \
   $OVERLAY_ROOTFS
 
-echo "Bundle '$BUNDLE_NAME' has been installed."
+echo "bundle '$BUNDLE_NAME' 已安装完成。"
 
 cd $SRC_DIR

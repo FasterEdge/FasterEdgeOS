@@ -2,62 +2,62 @@
 
 set -e
 
-# Load common properties and functions in the current script.
+# 加载公共属性与函数。
 . ./common.sh
 
-echo "*** GENERATE IMAGE BEGIN ***"
+echo "*** 生成系统镜像开始 ***"
 
-# Prepare the work area.
-rm -f $SRC_DIR/mll_image.tgz
-rm -rf $WORK_DIR/mll_image
-mkdir -p $WORK_DIR/mll_image
+# 清理旧的构建产物。
+rm -f $SRC_DIR/fasteredgeos_image.tgz
+rm -rf $WORK_DIR/fasteredgeos_image
+mkdir -p $WORK_DIR/fasteredgeos_image
 
 if [ -d $ROOTFS ] ; then
-  # Copy the rootfs.
+  # 复制 rootfs。
   cp -r $ROOTFS/* \
-    $WORK_DIR/mll_image
+    $WORK_DIR/fasteredgeos_image
 else
-  echo "Cannot continue - rootfs is missing."
+  echo "rootfs 不存在，无法继续。"
   exit 1
 fi
 
 if [ -d $OVERLAY_ROOTFS ] && \
    [ ! "`ls -A $OVERLAY_ROOTFS`" = "" ] ; then
 
-  echo "Merging overlay software in image."
+  echo "正在把 overlay 软件合并进系统镜像。"
 
-  # Copy the overlay content.
-  # With '--remove-destination' all possibly existing soft links in
-  # $WORK_DIR/mll_image will be overwritten correctly.
+  # 复制 overlay 内容。
+  # 使用 '--remove-destination' 确保 $WORK_DIR/fasteredgeos_image
+  # 中已有的软链接能被正确覆盖。
   cp -r --remove-destination $OVERLAY_ROOTFS/* \
-    $WORK_DIR/mll_image
+    $WORK_DIR/fasteredgeos_image
   cp -r --remove-destination $SRC_DIR/minimal_overlay/rootfs/* \
-    $WORK_DIR/mll_image
+    $WORK_DIR/fasteredgeos_image
 else
-  echo "MLL image will have no overlay software."
+  echo "系统镜像将不包含 overlay 软件。"
 fi
 
-cd $WORK_DIR/mll_image
+cd $WORK_DIR/fasteredgeos_image
 
-# Generate the image file (ordinary 'tgz').
-tar -zcf $SRC_DIR/mll_image.tgz *
+# 生成系统镜像文件（普通 'tgz' 压缩包）。
+tar -zcf $SRC_DIR/fasteredgeos_image.tgz *
 
 cat << CEOF
 
   ##################################################################
   #                                                                #
-  #  Minimal Linux Live image 'mll_image.tgz' has been generated.  #
+  #  已生成 FasterEdgeOS 系统镜像 'fasteredgeos_image.tgz'。       #
   #                                                                #
-  #  You can import the MLL image in Docker like this:             #
+  #  可用 Docker 导入该镜像：                                      #
   #                                                                #
-  #    docker import mll_image.tgz minimal-linux-live:latest       #
+  #    docker import fasteredgeos_image.tgz fasteredgeos:latest    #
   #                                                                #
-  #  Then you can run MLL shell in Docker container like this:     #
+  #  然后这样进入 FasterEdgeOS Shell：                             #
   #                                                                #
-  #    docker run -it minimal-linux-live /bin/sh                   #
+  #    docker run -it fasteredgeos /bin/sh                         #
   #                                                                #
   ##################################################################
 
 CEOF
 
-echo "*** GENERATE IMAGE END ***"
+echo "*** 生成系统镜像结束 ***"

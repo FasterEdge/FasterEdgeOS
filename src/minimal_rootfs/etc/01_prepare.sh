@@ -1,10 +1,10 @@
 #!/bin/sh
 
-# System initialization sequence:
+# 系统初始化序列：
 #
 # /init
 #  |
-#  +--(1) /etc/01_prepare.sh (this file)
+#  +--(1) /etc/01_prepare.sh （本文件）
 #  |
 #  +--(2) /etc/02_overlay.sh
 #          |
@@ -14,18 +14,18 @@
 #                    |
 #                    +--(1) /etc/04_bootscript.sh
 #                    |       |
-#                    |       +-- /etc/autorun/* (all scripts)
+#                    |       +-- /etc/autorun/* （所有脚本）
 #                    |
-#                    +--(2) /bin/sh (Alt + F1, main console)
+#                    +--(2) /bin/sh （Alt + F1，主控制台）
 #                    |
-#                    +--(2) /bin/sh (Alt + F2)
+#                    +--(2) /bin/sh （Alt + F2）
 #                    |
-#                    +--(2) /bin/sh (Alt + F3)
+#                    +--(2) /bin/sh （Alt + F3）
 #                    |
-#                    +--(2) /bin/sh (Alt + F4)
+#                    +--(2) /bin/sh （Alt + F4）
 
 dmesg -n 1
-echo "Most kernel messages have been suppressed."
+echo "大多数内核消息已被抑制。"
 
 mount -t devtmpfs none /dev
 mount -t proc none /proc
@@ -36,5 +36,4 @@ mkdir -p /dev/pts
 
 mount -t devpts none /dev/pts
 
-echo "Mounted all core filesystems. Ready to continue."
-
+echo "已挂载所有核心文件系统，可以继续。"

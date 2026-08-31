@@ -1,0 +1,8 @@
+NAME="FasterEdgeOS"
+PRETTY_NAME="FasterEdgeOS 0.1"
+ID=fasteredgeos
+VERSION_ID="0.1"
+VERSION="0.1"
+HOME_URL="https://github.com/FasterEdge/FasterEdgeOS"
+SUPPORT_URL="https://github.com/FasterEdge/FasterEdgeOS/issues"
+BUG_REPORT_URL="https://github.com/FasterEdge/FasterEdgeOS/issues"

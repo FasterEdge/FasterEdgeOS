@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# System initialization sequence:
+# 系统初始化序列：
 #
 # /init
 #  |
@@ -8,59 +8,57 @@
 #  |
 #  +--(2) /etc/02_overlay.sh
 #          |
-#          +-- /etc/03_init.sh (this file)
+#          +-- /etc/03_init.sh （本文件）
 #               |
 #               +-- /sbin/init
 #                    |
 #                    +--(1) /etc/04_bootscript.sh
 #                    |       |
-#                    |       +-- /etc/autorun/* (all scripts)
+#                    |       +-- /etc/autorun/* （所有脚本）
 #                    |
-#                    +--(2) /bin/sh (Alt + F1, main console)
+#                    +--(2) /bin/sh （Alt + F1，主控制台）
 #                    |
-#                    +--(2) /bin/sh (Alt + F2)
+#                    +--(2) /bin/sh （Alt + F2）
 #                    |
-#                    +--(2) /bin/sh (Alt + F3)
+#                    +--(2) /bin/sh （Alt + F3）
 #                    |
-#                    +--(2) /bin/sh (Alt + F4)
+#                    +--(2) /bin/sh （Alt + F4）
 
-# If you have persistent overlay support then you can edit this file and replace
-# the default initialization  of the system. For example, you could use this:
+# 如果你有持久化 overlay 支持，那么你可以编辑此文件，替换系统的默认
+# 初始化。例如，你可以使用：
 #
 # exec setsid cttyhach sh
 #
-# This gives you PID 1 shell inside the initramfs area. Since this is a PID 1
-# shell, you can still invoke the original initialization logic by executing
-# this command:
+# 这会在 initramfs 区域内给你一个 PID 1 shell。由于这是一个 PID 1
+# shell，你仍然可以通过执行以下命令来调用原来的初始化逻辑：
 #
 # exec /sbin/init
 
-# Print first message on screen.
+# 在屏幕上打印第一条消息。
 cat /etc/msg/03_init_01.txt
 
-# Wait 5 second or until any ~keyboard key is pressed.
+# 等待 5 秒或直到按下任意键盘键。
 read -t 5 -n1 -s key
 
 if [ "$key" = "" ] ; then
-  # Use default initialization logic based on configuration in '/etc/inittab'.
-  echo -e "Executing \\e[32m/sbin/init\\e[0m as PID 1."
+  # 使用基于 '/etc/inittab' 配置的默认初始化逻辑。
+  echo -e "正在以 \\e[32m/sbin/init\\e[0m 作为 PID 1 执行。"
   exec /sbin/init
 else
-  # Print second message on screen.
+  # 在屏幕上打印第二条消息。
   cat /etc/msg/03_init_02.txt
 
   if [ "$PID1_SHELL" = "true" ] ; then
-    # PID1_SHELL flag is set which means we have controlling terminal.
+    # 已设置 PID1_SHELL 标志，表示我们有控制终端。
     unset PID1_SHELL
     exec sh
   else
-    # Interactive shell with controlling tty as PID 1.
+    # 作为 PID 1 的交互式 shell，带有控制 tty。
     exec setsid cttyhack sh
   fi
 fi
 
-echo "(/etc/03_init.sh) - there is a serious bug."
+echo "(/etc/03_init.sh) - 存在严重错误。"
 
-# Wait until any key has been pressed.
+# 等待直到按下任意键。
 read -n1 -s
-

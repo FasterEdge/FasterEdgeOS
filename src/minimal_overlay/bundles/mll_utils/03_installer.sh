@@ -5,16 +5,16 @@ set -e
 . ../../common.sh
 
 if [ ! -d "$WORK_DIR/overlay/$BUNDLE_NAME" ] ; then
-  echo "The directory $WORK_DIR/overlay/$BUNDLE_NAME does not exist. Cannot continue."
+  echo "目录 $WORK_DIR/overlay/$BUNDLE_NAME 不存在，无法继续。"
   exit 1
 fi
 
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
-# 'mll-install' BEGIN
+# 'fasteredgeos-install' 开始
 
-# This script installs Minimal Linux Live on Ext2 partition.
-cat << CEOF > sbin/mll-install
+# 该脚本将 FasterEdgeOS 安装到 Ext2 分区。
+cat << CEOF > sbin/fasteredgeos-install
 #!/bin/sh
 
 CURRENT_DIR=\$(pwd)
@@ -24,23 +24,22 @@ if [ "\$1" = "" -o "\$1" = "-h" -o "\$1" = "--help" ] ; then
   PRINT_HELP=true
 fi
 
-# Put more business logic here (if needed).
+# 如有需要，可在此添加更多业务逻辑。
 
 if [ "\$PRINT_HELP" = "true" ] ; then
   cat << DEOF
 
-  This is the Minimal Linux Live installer. Requires root permissions.
+  这是 FasterEdgeOS 安装程序。需要 root 权限。
 
-  Usage: mll-install DEVICE
+  Usage: fasteredgeos-install DEVICE
 
-  DEVICE    The device where Minimal Linux Live will be installed. Specify only
-            the name, e.g. 'sda'. The installer will automatically convert this
-            to '/dev/sda' and will exit with warning message if the device does
-            not exist.
+  DEVICE    FasterEdgeOS 将被安装到的设备。只需指定名称，例如 'sda'。
+            安装程序会自动将其转换为 '/dev/sda'，如果设备不存在，
+            则会退出并给出警告消息。
 
-  mll-install sdb
+  fasteredgeos-install sdb
 
-  The above example installs Minimal Linux Live  on '/dev/sdb'.
+  上述示例将 FasterEdgeOS 安装到 '/dev/sdb'。
 
 DEOF
 
@@ -48,20 +47,19 @@ DEOF
 fi
 
 if [ ! "\$(id -u)" = "0" ] ; then
-  echo "You need root permissions. Use '-h' or '--help' for more information."
+  echo "你需要 root 权限。使用 '-h' 或 '--help' 获取更多信息。"
   exit 1
 fi
 
 if [ ! -e /dev/\$1 ] ; then
-  echo "Device '/dev/\$1' does not exist. Use '-h' or '--help' for more information."
+  echo "设备 '/dev/\$1' 不存在。使用 '-h' 或 '--help' 获取更多信息。"
   exit 1
 fi
 
 cat << DEOF
 
-  Minimal Linux Live will be installed on device '/dev/\$1'. The device will be
-  formatted with Ext2 and all previous data will be lost. Press 'Ctrl + C' to
-  exit or any other key to continue.
+  FasterEdgeOS 将被安装到设备 '/dev/\$1'。该设备将被格式化为 Ext2，
+  之前的所有数据都将丢失。按 'Ctrl + C' 退出，或按任意其他键继续。
 
 DEOF
 
@@ -85,9 +83,9 @@ rmdir /tmp/mnt/inst
 
 cat << DEOF
 
-  Installation is now complete. Device '/dev/\$1' should be bootable now. Check
-  the above output for any errors. You need to remove the ISO image and restart
-  the system. Let us hope the installation process worked!!! :)
+  安装现已完成。设备 '/dev/\$1' 现在应该可以引导了。请检查上面的输出
+  是否有任何错误。你需要移除 ISO 镜像并重新启动系统。希望安装过程
+  一切顺利！！！:)
 
 DEOF
 
@@ -95,12 +93,12 @@ cd \$CURRENT_DIR
 
 CEOF
 
-chmod +rx sbin/mll-install
+chmod +rx sbin/fasteredgeos-install
 
-# 'mll-install' END
+# 'fasteredgeos-install' 结束
 
 if [ ! -d "$WORK_DIR/syslinux" ] ; then
-echo "The installer depends on Syslinux which is missing. Cannot continue."
+echo "安装程序依赖 Syslinux，但缺失该组件，无法继续。"
   exit 1
 fi;
 
@@ -113,18 +111,18 @@ mkdir -p $WORK_DIR/overlay/$BUNDLE_NAME/opt/syslinux
 cp bios/mbr/mbr.bin \
   $WORK_DIR/overlay/$BUNDLE_NAME/opt/syslinux
 
-# Big mama hack - need to find proper workaround!!!
-# Both syslinux and extlinux are 32-bit executables which require 32-bit libs.
-# Possible solution 1 - build 32-bit GLIBC on demand.
-# Possible solution 2 - drop 32-bit MLL and provide 64-bit with multi-arch.
+# 大妈妈补丁（hack）——需要找到合适的解决方案！！！
+# syslinux 和 extlinux 都是 32 位可执行文件，需要 32 位库。
+# 可能的解决方案 1 - 按需构建 32 位 GLIBC。
+# 可能的解决方案 2 - 放弃 32 位 FasterEdgeOS，提供带 multi-arch 的 64 位版本。
 mkdir -p $WORK_DIR/overlay/$BUNDLE_NAME/lib
 mkdir -p $WORK_DIR/overlay/$BUNDLE_NAME/usr/lib
 cp /lib/ld-linux.so.2 \
   $WORK_DIR/overlay/$BUNDLE_NAME/lib
 cp /lib/i386-linux-gnu/libc.so.6 \
   $WORK_DIR/overlay/$BUNDLE_NAME/usr/lib
-# Big mama hack - end.
+# 大妈妈补丁 - 结束。
 
-echo "Minimal Linux Live installer has been generated."
+echo "FasterEdgeOS 安装程序已生成。"
 
 cd $SRC_DIR

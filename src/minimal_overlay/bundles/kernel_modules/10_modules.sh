@@ -1,11 +1,11 @@
 #!/bin/sh
 
-# Enable the 'mdev' hotplug manager.
+# 启用 'mdev' 热插拔管理器。
 echo /sbin/mdev > /proc/sys/kernel/hotplug
 
-# Initial execution of the 'mdev' hotpug manager.
+# 初次执行 'mdev' 热插拔管理器。
 /sbin/mdev -s
 
 cat << CEOF
-[1m  The 'mdev' hotplug manager is active.[0m
+[1m  'mdev' 热插拔管理器已启用。[0m
 CEOF

@@ -2,28 +2,28 @@
 
 set -e
 
-# Load common properties and functions in the current script.
+# 加载公共属性与函数。
 . ./common.sh
 
 download() {
-  # Read the 'SYSLINUX_SOURCE_URL' property from '.config'.
+  # 从 '.config' 读取 'SYSLINUX_SOURCE_URL' 属性。
   DOWNLOAD_URL=`read_property SYSLINUX_SOURCE_URL`
 
-  # Grab everything after the last '/' character.
+  # 取最后一个 '/' 之后的部分作为归档文件名。
   ARCHIVE_FILE=${DOWNLOAD_URL##*/}
 
-  # Download Syslinux source archive in the 'source' directory.
+  # 把 Syslinux 源码归档下载到 'source' 目录。
   download_source $DOWNLOAD_URL $SOURCE_DIR/$ARCHIVE_FILE
 
-  # Extract the Syslinux sources in the 'work/syslinux' directory.
+  # 把 Syslinux 源码解压到 'work/syslinux' 目录。
   extract_source $SOURCE_DIR/$ARCHIVE_FILE syslinux
 }
 
-echo "*** GET SYSLINUX BEGIN ***"
+echo "*** 获取 SYSLINUX 开始 ***"
 
-# Read the 'FIRMWARE_TYPE' property from '.config'.
+# 从 '.config' 读取 'FIRMWARE_TYPE' 属性。
 FIRMWARE_TYPE=`read_property FIRMWARE_TYPE`
-echo "Firmware type is '$FIRMWARE_TYPE'."
+echo "固件类型为 '$FIRMWARE_TYPE'。"
 
 case $FIRMWARE_TYPE in
   bios)
@@ -39,12 +39,12 @@ case $FIRMWARE_TYPE in
     ;;
 
   *)
-    echo "Firmware type '$FIRMWARE_TYPE' is not recognized. Cannot continue."
+    echo "无法识别的固件类型 '$FIRMWARE_TYPE'，构建中止。"
     ;;
 
 esac
 
-# We go back to the main MLL source folder.
+# 返回 FasterEdgeOS 主源码目录。
 cd $SRC_DIR
 
-echo "*** GET SYSLINUX END ***"
+echo "*** 获取 SYSLINUX 结束 ***"

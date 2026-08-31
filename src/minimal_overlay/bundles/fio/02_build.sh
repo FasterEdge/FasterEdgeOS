@@ -6,38 +6,38 @@ set -e
 
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
-# Change to the fio source directory which ls finds, e.g. 'fio-3.2'.
+# 切换到 fio 源码目录（由 ls 找到），例如 'fio-3.2'。
 cd $(ls -d fio-*)
 
 if [ -f Makefile ] ; then
-  echo "Preparing 'fio' work area. This may take a while."
+  echo "正在准备 'fio' 的工作目录，这可能需要一些时间。"
   make -j $NUM_JOBS clean
 else
-  echo "The clean phase for 'fio' has been skipped."
+  echo "已跳过 'fio' 的清理阶段。"
 fi
 
 rm -rf $DEST_DIR
 
-echo "Configuring 'fio'."
+echo "正在配置 'fio'。"
 CFLAGS="$CFLAGS" ./configure \
   --prefix=/usr
 
-echo "Building 'fio'."
+echo "正在编译 'fio'。"
 make -j $NUM_JOBS
 
-echo "Installing 'fio'."
+echo "正在安装 'fio'。"
 make -j $NUM_JOBS install DESTDIR=$DEST_DIR
 
-echo "Reducing 'fio' size."
+echo "正在精简 'fio' 的体积。"
 set +e
 strip -g $DEST_DIR/usr/bin/*
 set -e
 
-# With '--remove-destination' all possibly existing soft links in
-# '$OVERLAY_ROOTFS' will be overwritten correctly.
+# 使用 '--remove-destination' 可正确覆盖
+# '$OVERLAY_ROOTFS' 中可能已存在的软链接。
 cp -r --remove-destination $DEST_DIR/* \
   $OVERLAY_ROOTFS
 
-echo "Bundle 'fio' has been installed."
+echo "bundle 'fio' 已安装完成。"
 
 cd $SRC_DIR

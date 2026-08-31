@@ -1,11 +1,10 @@
 !.gitignore
 
-/docs/www/download/**
-/docs/www/favicon.ico
-/docs/www/images/**
-
 /src/source/**
 /src/work/**
-/src/minimal_linux_live*
+/src/fasteredgeos.iso
+/src/fasteredgeos_image.tgz
+/src/fasteredgeos*.log
+/src/fasteredgeos*.src.tar.xz
 /src/*.img
 /src/*.tgz

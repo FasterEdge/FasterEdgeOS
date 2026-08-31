@@ -5,7 +5,7 @@ set -e
 . ../../common.sh
 
 if [ ! -d $SYSROOT ] ; then
-  echo "Cannot continue - GLIBC is missing. Please buld GLIBC first."
+  echo "无法继续 - GLIBC 缺失，请先构建 GLIBC。"
   exit 1
 fi
 
@@ -18,16 +18,16 @@ mkdir -p $DEST_DIR/lib
 cp $SYSROOT/lib/libnss_hesiod.so.2 $DEST_DIR/lib/
 ln -s libnss_hesiod.so.2 $DEST_DIR/lib/libnss_hesiod.so
 
-echo "Reducing '$BUNDLE_NAME' size."
+echo "正在精简 '$BUNDLE_NAME' 的体积。"
 set +e
 strip -g $DEST_DIR/lib/*
 set -e
 
-# With '--remove-destination' all possibly existing soft links in
-# '$OVERLAY_ROOTFS' will be overwritten correctly.
+# 使用 '--remove-destination' 可正确覆盖
+# '$OVERLAY_ROOTFS' 中可能已存在的软链接。
 cp -r --remove-destination $DEST_DIR/* \
   $OVERLAY_ROOTFS
 
-echo "Bundle '$BUNDLE_NAME' has been installed."
+echo "bundle '$BUNDLE_NAME' 已安装完成。"
 
 cd $SRC_DIR

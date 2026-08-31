@@ -2,4 +2,4 @@
 
 set -e
 
-echo "All GNU C libraries have been installed."
+echo "所有 GNU C 库均已安装完成。"

@@ -1,8 +1,8 @@
-name: 'MLL With Integration Tests'
+name: 'FasterEdgeOS With Integration Tests'
 on: 'workflow_dispatch'
 jobs:
-  mll-with-tests:
-    runs-on: 'ubuntu-22.04'    # revert back to 'ubuntu-latest' when 22.04 is no longer in public beta
+  fasteredgeos-with-tests:
+    runs-on: 'ubuntu-22.04'    # 当 22.04 不再处于公开测试阶段时，恢复为 'ubuntu-latest'
     steps:
     - uses: actions/checkout@v2    
     - name: 'Apply Workflow Patches'

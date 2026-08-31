@@ -4,11 +4,10 @@ set -e
 
 . ../../common.sh
 
-# Uncomment this to regenerate the MLL logo. The file MLL_LOGO
-# has to be existing in advance and it is your responsibility
-# to provide it. It is also your responsibility to set your
-# development environemnt if some of the commands are missing.
-# Maximum allowed logo size is 80x80. Some useful resources:
+# 取消注释以下内容即可重新生成 FasterEdgeOS 启动 logo。文件 MLL_LOGO
+# 必须提前存在，并且提供该文件是您的责任。如果某些命令缺失，
+# 您还需要自行配置开发环境。logo 的最大允许尺寸为 80x80。
+# 一些有用的资源：
 #
 # http://www.armadeus.org/wiki/index.php?title=Linux_Boot_Logo
 # http://www.articleworld.org/index.php/How_to_change_the_Linux_penguin_boot_logo
@@ -20,21 +19,21 @@ set -e
 #ppmquant 224 $WORK_DIR/logo/mll_logo.ppm > $WORK_DIR/logo/mll_logo_224.ppm
 #pnmnoraw $WORK_DIR/logo/mll_logo_224.ppm > $SRC_DIR/mll_logo_ascii_224.ppm
 
-# Read the 'USE_BOOT_LOGO' property from '.config'
+# 从 '.config' 中读取 'USE_BOOT_LOGO' 属性
 USE_BOOT_LOGO=`read_property USE_BOOT_LOGO`
 
 if [ ! "$USE_BOOT_LOGO" = "true" ] ; then
-  echo "Boot logo has been disabled. No need to generate MLL boot logo."
+  echo "启动 logo 已被禁用。无需生成 FasterEdgeOS 启动 logo。"
   exit 0
 fi
 
 if [ ! -f $WORK_DIR/kernel/linux-*/.config ] ; then
-  echo "Kernel configuration does not exist. Cannot continue."
+  echo "内核配置不存在。无法继续。"
   exit 1
 fi
 
 if [ ! -f $WORK_DIR/kernel/kernel_installed/kernel ] ; then
-  echo "Kernel image does not exist. Cannot continue."
+  echo "内核镜像不存在。无法继续。"
   exit 1
 fi
 

@@ -2,24 +2,24 @@
 
 set -e
 
-# Load common properties and functions in the current script.
+# 加载公共属性与函数。
 . ./common.sh
 
-echo "*** GET BUSYBOX BEGIN ***"
+echo "*** 获取 BusyBox 开始 ***"
 
-# Read the 'BUSYBOX_SOURCE_URL' property from '.config'.
+# 从 '.config' 读取 'BUSYBOX_SOURCE_URL' 属性。
 DOWNLOAD_URL=`read_property BUSYBOX_SOURCE_URL`
 
-# Grab everything after the last '/' character.
+# 取最后一个 '/' 之后的部分作为归档文件名。
 ARCHIVE_FILE=${DOWNLOAD_URL##*/}
 
-# Download Busybox source archive in the 'source' directory.
+# 把 BusyBox 源码归档下载到 'source' 目录。
 download_source $DOWNLOAD_URL $SOURCE_DIR/$ARCHIVE_FILE
 
-# Extract the Busybox sources in the 'work/busybox' directory.
+# 把 BusyBox 源码解压到 'work/busybox' 目录。
 extract_source $SOURCE_DIR/$ARCHIVE_FILE busybox
 
-# We go back to the main MLL source folder.
+# 返回 FasterEdgeOS 主源码目录。
 cd $SRC_DIR
 
-echo "*** GET BUSYBOX END ***"
+echo "*** 获取 BusyBox 结束 ***"

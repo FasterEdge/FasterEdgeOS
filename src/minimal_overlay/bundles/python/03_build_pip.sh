@@ -6,11 +6,11 @@ set -e
 
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
-# Read the common configuration properties.
+# 读取公共配置属性。
 INSTALL_PIP=`read_property INSTALL_PIP`
 
 if [ "$INSTALL_PIP" = "true" ] ; then
-  echo "Installing pip"
+  echo "正在安装 pip"
   $DEST_DIR/usr/bin/python3 get-pip.py
 fi
 

@@ -1,18 +1,18 @@
 #!/bin/sh
 
-# The default keyboard which is set on boot.
+# 开机时设置的默认键盘布局。
 loadkeys us
 
 cat << CEOF
-[1m  The default keyboard layout is English (US). You can change the keyboard
-  layout to German (for example) like this:
+[1m  默认键盘布局为英语（美国）。你可以这样把键盘布局
+  改为德语（例如）：
 
     loadkeys de
     
-  You can go back to the original US keyboard layout like this:
+  你也可以这样恢复为原始的美国键盘布局：
   
     loadkeys us
     
-  Alternatively, change the file '90_kbd.sh' in the 'kbd' bundle and set the
-  keyboard layout you want to use on boot.[0m
+  或者，修改 'kbd' bundle 中的 '90_kbd.sh' 文件，设置
+  开机时要使用的键盘布局。[0m
 CEOF

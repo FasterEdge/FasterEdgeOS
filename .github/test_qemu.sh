@@ -1,41 +1,41 @@
 #!/bin/sh
 
-# This script is supposed to be executed by GitHub workflow.
+# 本脚本由 GitHub 工作流调用。
 
 set -e
 
 cd ../src
 
-echo "`date` | *** MLL QEMU test - BEGIN ***"
+echo "`date` | *** FasterEdgeOS QEMU 测试 - 开始 ***"
 
-qemu-system-x86_64 -m 256M -cdrom minimal_linux_live.iso -boot d -nographic &
+qemu-system-x86_64 -m 256M -cdrom fasteredgeos.iso -boot d -nographic &
 
 sleep 5
 
 if [ "`ps -ef | grep -i [q]emu-system-x86_64`" = "" ] ; then
-  echo "`date` | !!! FAILURE !!! Minimal Linux Live is not running in QEMU."
+  echo "`date` | !!! FAILURE !!! FasterEdgeOS 未在 QEMU 中运行。"
   exit 1
 else
-  echo "`date` | Minimal Linux Live is running in QEMU. Waiting 120 seconds for automatic shutdown."
+  echo "`date` | FasterEdgeOS 已在 QEMU 中运行，等待 120 秒自动关机。"
 fi
 
 sleep 120
 
 if [ "`ps -ef | grep -i [q]emu-system-x86_64`" = "" ] ; then
-  echo "`date` | Minimal Linux Live is not running in QEMU."
+  echo "`date` | FasterEdgeOS 已不在 QEMU 中运行。"
 else
-  echo "`date` | !!! FAILURE !!! Minimal Linux Live is still running in QEMU."
+  echo "`date` | !!! FAILURE !!! FasterEdgeOS 仍在 QEMU 中运行。"
   ps -ef | grep -i [q]emu-system-x86_64
   exit 1
 fi
 
-echo "`date` | *** MLL QEMU test - END ***"
+echo "`date` | *** FasterEdgeOS QEMU 测试 - 结束 ***"
 
 cat << CEOF
 
   #######################
   #                     #
-  #  QEMU test passed.  #
+  #  QEMU 测试通过。  #
   #                     #
   #######################
 

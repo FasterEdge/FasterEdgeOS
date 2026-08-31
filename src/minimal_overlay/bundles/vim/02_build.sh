@@ -6,22 +6,22 @@ set -e
 
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
-# Change to the vim source directory which ls finds, e.g. 'vim-8.0.1298'.
+# 切换到 vim 源码目录（由 ls 找到），例如 'vim-8.0.1298'。
 cd $(ls -d vim-*)
 
 if [ -f Makefile ] ; then
-  echo "Preparing '$BUNDLE_NAME' work area. This may take a while."
+  echo "正在准备 '$BUNDLE_NAME' 的工作目录，这可能需要一些时间。"
   make -j $NUM_JOBS clean
 else
-  echo "The clean phase for '$BUNDLE_NAME' has been skipped."
+  echo "已跳过 '$BUNDLE_NAME' 的清理阶段。"
 fi
 
 rm -rf $DEST_DIR
 
-echo "Setting 'vimrc' location."
+echo "正在设置 'vimrc' 的位置。"
 echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
 
-echo "Configuring '$BUNDLE_NAME'."
+echo "正在配置 '$BUNDLE_NAME'。"
 CFLAGS="$CFLAGS" ./configure \
   --prefix=/usr \
   --enable-gui=no \
@@ -44,13 +44,13 @@ export CONF_OPT_CSCOPE='--enable-cscope'
 export CONF_OPT_MULTIBYTE='--enable-multibyte'
 export CONF_OPT_FEAT='--with-features=huge'
 
-echo "Building '$BUNDLE_NAME'."
+echo "正在编译 '$BUNDLE_NAME'。"
 make -j $NUM_JOBS
 
-echo "Installing '$BUNDLE_NAME'."
+echo "正在安装 '$BUNDLE_NAME'。"
 make -j $NUM_JOBS install DESTDIR=$DEST_DIR
 
-echo "Generating '$BUNDLE_NAME'."
+echo "正在生成 '$BUNDLE_NAME'。"
 mkdir -p $DEST_DIR/etc
 cat > $DEST_DIR/etc/vimrc << "EOF"
 " Begin /etc/vimrc
@@ -64,21 +64,21 @@ set background=dark
 " End /etc/vimrc
 EOF
 
-echo "Symlinking 'vim' to 'vi'."
+echo "正在将 'vim' 软链接到 'vi'。"
 ln -sv vim $DEST_DIR/usr/bin/vi
 mkdir -p $DEST_DIR/bin
 ln -sv vim $DEST_DIR/bin/vi
 
-echo "Reducing '$BUNDLE_NAME' size."
+echo "正在精简 '$BUNDLE_NAME' 的体积。"
 set +e
 strip -g $DEST_DIR/usr/bin/*
 set -e
 
-# With '--remove-destination' all possibly existing soft links in
-# '$OVERLAY_ROOTFS' will be overwritten correctly.
+# 使用 '--remove-destination' 可正确覆盖
+# '$OVERLAY_ROOTFS' 中可能已存在的软链接。
 cp -r --remove-destination $DEST_DIR/* \
   $OVERLAY_ROOTFS
 
-echo "Bundle '$BUNDLE_NAME' has been installed."
+echo "bundle '$BUNDLE_NAME' 已安装完成。"
 
 cd $SRC_DIR

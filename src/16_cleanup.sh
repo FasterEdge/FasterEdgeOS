@@ -1,24 +1,23 @@
 #!/bin/sh
 
-# This script is useful if you have executed the MLL build process
-# with elevated rights. Ths script recursively reverts the ownership
-# of all files back to the original user.
+# 此脚本适用于使用提升权限执行过 FasterEdgeOS 构建流程的情况。
+# 它会递归地把所有文件的属主恢复为原始用户。
 
 set -e
 
-echo "*** CLEANUP BEGIN ***"
+echo "*** 清理开始 ***"
 
 if [ "$(id -u)" = "0" ] ; then
-  echo "Applying original ownership to all affected files. This may take a while."
+  echo "正在把所有受影响文件的属主恢复为原始用户，可能需要一些时间。"
 
-  # Find the original user. Note that this may not always be correct.
+  # 查找原始用户。注意结果不一定总是正确。
   ORIG_USER=`who | head -n 1 | awk '{print \$1}'`
-  echo "Original user is '$ORIG_USER'."
+  echo "原始用户为 '$ORIG_USER'。"
 
-  # Apply ownership back to original owner for all affected files.
+  # 把所有受影响文件的属主恢复为原始属主。
   chown -R $ORIG_USER:$ORIG_USER *
 else
-  echo "No need to perform cleanup."
+  echo "无需执行清理。"
 fi
 
-echo "*** CLEANUP END ***"
+echo "*** 清理结束 ***"

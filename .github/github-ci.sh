@@ -1,10 +1,10 @@
 #!/bin/sh
 
-# This script is supposed to be executed by GitHub workflow.
+# 本脚本由 GitHub 工作流调用。
 
 set -e
 
-# Apply GitHub workflow specific patches
+# 应用 GitHub 工作流专属补丁
 mkdir -p ../src/minimal_overlay/rootfs/etc/autorun
 cp 99_autoshutdown.sh ../src/minimal_overlay/rootfs/etc/autorun
 chmod +x ../src/minimal_overlay/rootfs/etc/autorun/99_autoshutdown.sh

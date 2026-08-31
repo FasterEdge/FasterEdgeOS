@@ -1,11 +1,10 @@
 #!/bin/sh
 
-# Each overlay bundle can provide an 'autorun' script which is executed by MLL
-# when the system boots. This file must be placed in '/etc/autorun' and should
-# follow the notation 'XX_something.sh' where XX is a number from 00 to 99.
-# The number defines when the script will be executed, e.g. '00_something.sh'
-# will be executed first and '99_something.sh' will be executed last.
+# 每个 overlay bundle 都可以提供一个 'autorun' 脚本，系统启动时由 FasterEdgeOS
+# 执行。该文件必须放在 '/etc/autorun' 目录下，命名格式为 'XX_something.sh'，
+# 其中 XX 是 00 到 99 的数字，决定脚本的执行顺序，例如 '00_something.sh'
+# 最先执行，'99_something.sh' 最后执行。
 
 cat << CEOF
-[31m  [mll_hello][0m [1mType 'hello' and press Enter.[0m
+[31m  [fasteredgeos_hello][0m [1m输入 'hello' 并按回车。[0m
 CEOF

@@ -4,7 +4,7 @@ set -e
 
 . ../../common.sh
 
-# Read the common configuration properties.
+# 读取公共配置属性。
 DOWNLOAD_URL=`read_property PYTHON_SOURCE_URL`
 USE_LOCAL_SOURCE=`read_property USE_LOCAL_SOURCE`
 
@@ -12,18 +12,18 @@ INSTALL_PIP=`read_property INSTALL_PIP`
 PIP_DOWNLOAD_URL=`read_property PIP_SOURCE_URL`
 USE_LOCAL_PIP_SOURCE=`read_property USE_LOCAL_SOURCE`
 
-# Grab everything after the last '/' character.
+# 取最后一个 '/' 之后的所有字符。
 ARCHIVE_FILE=${DOWNLOAD_URL##*/}
 PIP_FILE=${PIP_DOWNLOAD_URL##*/}
 
 if [ "$USE_LOCAL_SOURCE" = "true" -a ! -f $MAIN_SRC_DIR/source/overlay/$ARCHIVE_FILE  ] ; then
-  echo "Source bundle $MAIN_SRC_DIR/source/overlay/$ARCHIVE_FILE is missing and will be downloaded."
+  echo "源码包 $MAIN_SRC_DIR/source/overlay/$ARCHIVE_FILE 缺失，将进行下载。"
   USE_LOCAL_SOURCE="false"
 fi
 
 if [ "$INSTALL_PIP" = "true" ] ; then
   if [ "$USE_LOCAL_PIP_SOURCE" = "true" -a ! -f $MAIN_SRC_DIR/source/overlay/$PIP_FILE  ] ; then
-    echo "Pip installation $MAIN_SRC_DIR/source/overlay/$PIP_FILE is missing and will be downloaded."
+    echo "pip 安装程序 $MAIN_SRC_DIR/source/overlay/$PIP_FILE 缺失，将进行下载。"
     USE_LOCAL_PIP_SOURCE="false"
   fi
 fi
@@ -31,34 +31,34 @@ fi
 cd $MAIN_SRC_DIR/source/overlay
 
 if [ ! "$USE_LOCAL_SOURCE" = "true" ] ; then
-  # Downloading python source bundle file. The '-c' option allows the download to resume.
-  echo "Downloading PYTHON source bundle from $DOWNLOAD_URL"
+  # 正在下载 python 源码包文件。'-c' 选项允许断点续传下载。
+  echo "正在从 $DOWNLOAD_URL 下载 PYTHON 源码包"
   wget -c $DOWNLOAD_URL
 else
-  echo "Using local PYTHON source bundle $MAIN_SRC_DIR/source/overlay/$ARCHIVE_FILE"
+  echo "使用本地 PYTHON 源码包 $MAIN_SRC_DIR/source/overlay/$ARCHIVE_FILE"
 fi
 
 if [ "$INSTALL_PIP" = "true" ] ; then
   if [ ! "$USE_LOCAL_PIP_SOURCE" = "true" ] ; then
-    # Downloading pip source bundle file. The '-c' option allows the download to resume.
-    echo "Downloading PIP source bundle from $PIP_DOWNLOAD_URL"
+    # 正在下载 pip 源码包文件。'-c' 选项允许断点续传下载。
+    echo "正在从 $PIP_DOWNLOAD_URL 下载 PIP 源码包"
     wget -c $PIP_DOWNLOAD_URL
   else
-    echo "Using local PIP source bundle $MAIN_SRC_DIR/source/overlay/$PIP_FILE"
+    echo "使用本地 PIP 源码包 $MAIN_SRC_DIR/source/overlay/$PIP_FILE"
   fi
 fi
 
-# Delete folder with previously extracted python.
-echo "Removing PYTHON work area. This may take a while."
+# 删除先前解压出的 python 目录。
+echo "正在清理 PYTHON 的工作目录，这可能需要一些时间。"
 rm -rf $WORK_DIR/overlay/$BUNDLE_NAME
 mkdir $WORK_DIR/overlay/$BUNDLE_NAME
 
-# Extract python to folder 'work/overlay/python'.
-# Full path will be something like 'work/overlay/python/Python-3.8.0'.
+# 解压 python 到目录 'work/overlay/python'。
+# 完整路径形如 'work/overlay/python/Python-3.8.0'。
 tar -xvf $ARCHIVE_FILE -C $WORK_DIR/overlay/$BUNDLE_NAME
 
 if [ "$INSTALL_PIP" = "true" ] ; then
-  # Copy the pip installation script
+  # 复制 pip 安装脚本
   cp $PIP_FILE $WORK_DIR/overlay/$BUNDLE_NAME/get-pip.py
 fi
 

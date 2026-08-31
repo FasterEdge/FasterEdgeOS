@@ -1,12 +1,12 @@
 #!/bin/sh
 
-# System initialization sequence:
+# FasterEdgeOS 系统初始化序列：
 #
 # /init
 #  |
 #  +--(1) /etc/01_prepare.sh
 #  |
-#  +--(2) /etc/02_overlay.sh (this file)
+#  +--(2) /etc/02_overlay.sh (本文件)
 #          |
 #          +-- /etc/03_init.sh
 #               |
@@ -14,9 +14,9 @@
 #                    |
 #                    +--(1) /etc/04_bootscript.sh
 #                    |       |
-#                    |       +-- /etc/autorun/* (all scripts)
+#                    |       +-- /etc/autorun/* (所有脚本)
 #                    |
-#                    +--(2) /bin/sh (Alt + F1, main console)
+#                    +--(2) /bin/sh (Alt + F1, 主控制台)
 #                    |
 #                    +--(2) /bin/sh (Alt + F2)
 #                    |
@@ -24,34 +24,34 @@
 #                    |
 #                    +--(2) /bin/sh (Alt + F4)
 
-# Create the new mountpoint in RAM.
+# 在内存中创建新的挂载点。
 mount -t tmpfs none /mnt
 
-# Create folders for all critical file systems.
+# 为所有关键文件系统创建目录。
 mkdir /mnt/dev
 mkdir /mnt/sys
 mkdir /mnt/proc
 mkdir /mnt/tmp
-echo "Created folders for all critical file systems."
+echo "已为核心文件系统创建目录。"
 
-# Copy root folders in the new mountpoint.
-echo -e "Copying the root file system to \\e[94m/mnt\\e[0m."
+# 把根目录内容复制到新挂载点。
+echo -e "正在把根文件系统复制到 \\e[94m/mnt\\e[0m。"
 for dir in */ ; do
   case $dir in
     dev/)
-      # skip
+      # 跳过
       ;;
     proc/)
-      # skip
+      # 跳过
       ;;
     sys/)
-      # skip
+      # 跳过
       ;;
     mnt/)
-      # skip
+      # 跳过
       ;;
     tmp/)
-      # skip
+      # 跳过
       ;;
     *)
       cp -a $dir /mnt
@@ -59,11 +59,11 @@ for dir in */ ; do
   esac
 done
 
-DEFAULT_OVERLAY_DIR="/tmp/minimal/overlay"
-DEFAULT_UPPER_DIR="/tmp/minimal/rootfs"
-DEFAULT_WORK_DIR="/tmp/minimal/work"
+DEFAULT_OVERLAY_DIR="/tmp/fasteredgeos/overlay"
+DEFAULT_UPPER_DIR="/tmp/fasteredgeos/rootfs"
+DEFAULT_WORK_DIR="/tmp/fasteredgeos/work"
 
-echo "Searching available devices for overlay content."
+echo "正在搜索包含 overlay 内容的设备。"
 for DEVICE in /dev/* ; do
   DEV=$(echo "${DEVICE##*/}")
   SYSDEV=$(echo "/sys/class/block/$DEV")
@@ -85,55 +85,55 @@ for DEVICE in /dev/* ; do
   WORK_DIR=""
 
   mount $DEVICE $DEVICE_MNT 2>/dev/null
-  if [ -d $DEVICE_MNT/minimal/rootfs -a -d $DEVICE_MNT/minimal/work ] ; then
-    # folder
-    echo -e "  Found \\e[94m/minimal\\e[0m folder on device \\e[31m$DEVICE\\e[0m."
-    touch $DEVICE_MNT/minimal/rootfs/minimal.pid 2>/dev/null
-    if [ -f $DEVICE_MNT/minimal/rootfs/minimal.pid ] ; then
-      # read/write mode
-      echo -e "  Device \\e[31m$DEVICE\\e[0m is mounted in read/write mode."
+  if [ -d $DEVICE_MNT/fasteredgeos/rootfs -a -d $DEVICE_MNT/fasteredgeos/work ] ; then
+    # 文件夹模式
+    echo -e "  在设备 \\e[31m$DEVICE\\e[0m 上找到 \\e[94m/fasteredgeos\\e[0m 目录。"
+    touch $DEVICE_MNT/fasteredgeos/rootfs/fasteredgeos.pid 2>/dev/null
+    if [ -f $DEVICE_MNT/fasteredgeos/rootfs/fasteredgeos.pid ] ; then
+      # 读/写模式
+      echo -e "  设备 \\e[31m$DEVICE\\e[0m 以读/写模式挂载。"
 
-      rm -f $DEVICE_MNT/minimal/rootfs/minimal.pid
+      rm -f $DEVICE_MNT/fasteredgeos/rootfs/fasteredgeos.pid
 
       OVERLAY_DIR=$DEFAULT_OVERLAY_DIR
       OVERLAY_MNT=$DEVICE_MNT
-      UPPER_DIR=$DEVICE_MNT/minimal/rootfs
-      WORK_DIR=$DEVICE_MNT/minimal/work
+      UPPER_DIR=$DEVICE_MNT/fasteredgeos/rootfs
+      WORK_DIR=$DEVICE_MNT/fasteredgeos/work
     else
-      # read only mode
-      echo -e "  Device \\e[31m$DEVICE\\e[0m is mounted in read only mode."
+      # 只读模式
+      echo -e "  设备 \\e[31m$DEVICE\\e[0m 以只读模式挂载。"
 
-      OVERLAY_DIR=$DEVICE_MNT/minimal/rootfs
+      OVERLAY_DIR=$DEVICE_MNT/fasteredgeos/rootfs
       OVERLAY_MNT=$DEVICE_MNT
       UPPER_DIR=$DEFAULT_UPPER_DIR
       WORK_DIR=$DEFAULT_WORK_DIR
     fi
-  elif [ -f $DEVICE_MNT/minimal.img ] ; then
-    #image
-    echo -e "  Found \\e[94m/minimal.img\\e[0m image on device \\e[31m$DEVICE\\e[0m."
+  elif [ -f $DEVICE_MNT/fasteredgeos.img ] ; then
+    # 镜像模式
+    echo -e "  在设备 \\e[31m$DEVICE\\e[0m 上找到 \\e[94m/fasteredgeos.img\\e[0m 镜像。"
 
     mkdir -p /tmp/mnt/image
     IMAGE_MNT=/tmp/mnt/image
 
     LOOP_DEVICE=$(losetup -f)
-    losetup $LOOP_DEVICE $DEVICE_MNT/minimal.img
+    losetup $LOOP_DEVICE $DEVICE_MNT/fasteredgeos.img
 
     mount $LOOP_DEVICE $IMAGE_MNT
     if [ -d $IMAGE_MNT/rootfs -a -d $IMAGE_MNT/work ] ; then
-      touch $IMAGE_MNT/rootfs/minimal.pid 2>/dev/null
-      if [ -f $IMAGE_MNT/rootfs/minimal.pid ] ; then
-        # read/write mode
-        echo -e "  Image \\e[94m$DEVICE/minimal.img\\e[0m is mounted in read/write mode."
+      touch $IMAGE_MNT/rootfs/fasteredgeos.pid 2>/dev/null
+      if [ -f $IMAGE_MNT/rootfs/fasteredgeos.pid ] ; then
+        # 读/写模式
+        echo -e "  镜像 \\e[94m$DEVICE/fasteredgeos.img\\e[0m 以读/写模式挂载。"
 
-        rm -f $IMAGE_MNT/rootfs/minimal.pid
+        rm -f $IMAGE_MNT/rootfs/fasteredgeos.pid
 
         OVERLAY_DIR=$DEFAULT_OVERLAY_DIR
         OVERLAY_MNT=$IMAGE_MNT
         UPPER_DIR=$IMAGE_MNT/rootfs
         WORK_DIR=$IMAGE_MNT/work
       else
-        # read only mode
-        echo -e "  Image \\e[94m$DEVICE/minimal.img\\e[0m is mounted in read only mode."
+        # 只读模式
+        echo -e "  镜像 \\e[94m$DEVICE/fasteredgeos.img\\e[0m 以只读模式挂载。"
 
         OVERLAY_DIR=$IMAGE_MNT/rootfs
         OVERLAY_MNT=$IMAGE_MNT
@@ -155,7 +155,7 @@ for DEVICE in /dev/* ; do
 
     OUT=$?
     if [ ! "$OUT" = "0" ] ; then
-      echo -e "  \\e[31mMount failed (probably on vfat).\\e[0m"
+      echo -e "  \\e[31m挂载失败（可能是在 vfat 上）。\\e[0m"
 
       umount $OVERLAY_MNT 2>/dev/null
       rmdir $OVERLAY_MNT 2>/dev/null
@@ -164,32 +164,31 @@ for DEVICE in /dev/* ; do
       rmdir $DEFAULT_UPPER_DIR 2>/dev/null
       rmdir $DEFAULT_WORK_DIR 2>/dev/null
     else
-      # All done, time to go.
-      echo -e "  Overlay data from device \\e[31m$DEVICE\\e[0m has been merged."
+      # 全部完成。
+      echo -e "  设备 \\e[31m$DEVICE\\e[0m 上的 overlay 数据已合并。"
       break
     fi
   else
-    echo -e "  Device \\e[31m$DEVICE\\e[0m has no proper overlay structure."
+    echo -e "  设备 \\e[31m$DEVICE\\e[0m 没有合适的 overlay 结构。"
   fi
 
   umount $DEVICE_MNT 2>/dev/null
   rm -rf $DEVICE_MNT 2>/dev/null
 done
 
-# Move critical file systems to the new mountpoint.
+# 把关键文件系统移到新挂载点。
 mount --move /dev /mnt/dev
 mount --move /sys /mnt/sys
 mount --move /proc /mnt/proc
 mount --move /tmp /mnt/tmp
-echo -e "Mount locations \\e[94m/dev\\e[0m, \\e[94m/sys\\e[0m, \\e[94m/tmp\\e[0m and \\e[94m/proc\\e[0m have been moved to \\e[94m/mnt\\e[0m."
+echo -e "挂载点 \\e[94m/dev\\e[0m、\\e[94m/sys\\e[0m、\\e[94m/tmp\\e[0m 和 \\e[94m/proc\\e[0m 已移动到 \\e[94m/mnt\\e[0m。"
 
-# The new mountpoint becomes file system root. All original root folders are
-# deleted automatically as part of the command execution. The '/sbin/init'
-# process is invoked and it becomes the new PID 1 parent process.
-echo "Switching from initramfs root area to overlayfs root area."
+# 新挂载点成为文件系统根目录。所有原始根目录会随命令执行自动删除。
+# 随后调用 '/sbin/init'，它成为新的 PID 1 父进程。
+echo "正在从 initramfs 根区域切换到 overlayfs 根区域。"
 exec switch_root /mnt /etc/03_init.sh
 
-echo "(/etc/02_overlay.sh) - there is a serious bug."
+echo "(/etc/02_overlay.sh) - 存在严重错误。"
 
-# Wait until any key has been pressed.
+# 等待按键。
 read -n1 -s

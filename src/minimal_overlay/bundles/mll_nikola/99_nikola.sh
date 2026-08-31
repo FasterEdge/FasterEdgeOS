@@ -4,9 +4,9 @@ cat << CEOF
 [0m
   ###################################################
   #                                                 #
-  #  I dedicate this version of [1mMinimal [32;1mLinux [31;1mLive[0m  #
+  #  谨以此版 [1mFasterEdgeOS[0m 献给挚爱的妻子           #
   #                                                 #
-  #  to my beloved wife [33;1mMarina[0m and our son [36;1mNikola[0m   #
+  #  [33;1mMarina[0m 与我们的儿子 [36;1mNikola[0m                   #
   #                                                 #
   ###################################################
 [0m

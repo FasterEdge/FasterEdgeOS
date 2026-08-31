@@ -10,9 +10,9 @@ chmod +x $DEST_DIR/etc/autorun/99_nikola.sh
 
 install_to_overlay
 
-# In the end we print message that our bundle has been installed and we return
-# to the overlay source folder.
-echo "Bundle '$BUNDLE_NAME' has been installed."
+# 最后输出 bundle 已安装完成的信息，并返回
+# overlay 源码目录。
+echo "bundle '$BUNDLE_NAME' 已安装完成。"
 
 cd $SRC_DIR
 

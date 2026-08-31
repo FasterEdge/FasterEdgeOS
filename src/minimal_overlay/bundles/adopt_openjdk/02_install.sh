@@ -22,6 +22,6 @@ done
 
 install_to_overlay
 
-echo "$BUNDLE_NAME has been installed."
+echo "$BUNDLE_NAME 已安装完成。"
 
 cd $SRC_DIR

@@ -1,29 +1,27 @@
 #!/bin/sh
 
-# Use this script without arguments to run the generated ISO image with QEMU.
-# If you pass '-hdd' or '-h' the virtual hard disk 'hdd.img' will be attached.
-# Note that this virtual hard disk has to be created in advance. You can use
-# the script 'generate_hdd.sh' to generate the hard disk image file. Once you
-# have hard disk image, you can use it as overlay device and persist all your
-# changes. See the '.config' file for more information on the overlay support.
+# 不带参数运行此脚本时，将用 QEMU 启动生成的 ISO 镜像。
+# 传入 '-hdd' 或 '-h' 时，会挂载虚拟硬盘 'hdd.img'。
+# 注意该虚拟硬盘需要提前创建，可使用脚本 'generate_hdd.sh' 生成硬盘镜像。
+# 有了硬盘镜像后，可将其作为 overlay 设备使用并持久化所有修改。
+# 更多关于 overlay 支持的信息请参考 '.config' 文件。
 #
-# If you get kernel panic with message "No working init found", then try to
-# increase the RAM from 128M to 256M.
+# 若出现内核崩溃并提示 "No working init found"，可尝试把内存从 128M 增加到 256M。
 #
-# 'Ctrl + A' then 'C' to toggle between guest system console and QEMU monitor.
-# 'Ctrl + A' then 'X' to terminate the QEMU instance.
+# 按 'Ctrl + A' 再按 'C' 可在客户机系统控制台与 QEMU monitor 之间切换。
+# 按 'Ctrl + A' 再按 'X' 可终止 QEMU 实例。
 #
-# In nographic mode, qemu disables virtual console. To obtain a system console,
-# the virtual serial port can be used. In this mode, the virtual serial port is
-# redirected to the host's stdio by default. Pass "console=ttySn" (PC) or
-# "console=ttyAMAn" (on ARM) where n is 0, 1, ... on the kernel command line.
+# 在 nographic 模式下，qemu 会禁用虚拟控制台。要获得系统控制台，
+# 可以使用虚拟串口。在此模式下，虚拟串口默认重定向到宿主机 stdio。
+# 在内核命令行传入 "console=ttySn"（PC）或 "console=ttyAMAn"（ARM），
+# 其中 n 为 0、1、...。
 
 cat << CEOF
 
-  'Ctrl + A' then 'C' to toggle between guest system console and QEMU monitor.
-  'Ctrl + A' then 'X' to terminate the QEMU instance.
+  'Ctrl + A' 再按 'C' 可在客户机系统控制台与 QEMU monitor 之间切换。
+  'Ctrl + A' 再按 'X' 可终止 QEMU 实例。
 
-  Type 'console' in the boot menu to run MLL in QEMU console mode.
+  在启动菜单中输入 'console'，即可在 QEMU 控制台模式下运行 FasterEdgeOS。
 
 CEOF
 
@@ -33,12 +31,12 @@ else
   ARCH="i386"
 fi
 
-cmd="qemu-system-$ARCH -m 128M -cdrom minimal_linux_live.iso -boot d -nographic"
+cmd="qemu-system-$ARCH -m 128M -cdrom fasteredgeos.iso -boot d -nographic"
 
 if [ "$1" = "-hdd" -o "$1" = "-h" ] ; then
-  echo "Starting QEMU with attached ISO image and hard disk."
+  echo "正在启动 QEMU（挂载 ISO 镜像与硬盘）。"
   echo 'console' | $cmd -hda hdd.img
 else
-  echo "Starting QEMU with attached ISO image."
+  echo "正在启动 QEMU（挂载 ISO 镜像）。"
   echo 'console' | $cmd
 fi

@@ -6,10 +6,10 @@ mkdir -p minimal_overlay/rootfs/etc/autorun
 cat << CEOF > minimal_overlay/rootfs/etc/autorun/99_autoshutdown.sh
 #!/bin/sh
 
-# This script shuts down the OS automatically.
+# 此脚本自动关闭系统。
 sleep 10 && poweroff &
 
-echo "  Minimal Linux Live will shut down in 10 seconds."
+echo "  FasterEdgeOS 将在 10 秒后关闭。"
 
 CEOF
 chmod +x minimal_overlay/rootfs/etc/autorun/99_autoshutdown.sh
@@ -25,19 +25,19 @@ LABEL operatingsystem
 CEOF
 
 ./repackage.sh
-qemu-system-x86_64 -m 256M -cdrom minimal_linux_live.iso -boot d -localtime -nographic &
+qemu-system-x86_64 -m 256M -cdrom fasteredgeos.iso -boot d -localtime -nographic &
 
 sleep 5
 if [ "`ps -ef | grep -i [q]emu-system`" = "" ] ; then
-  echo "`date` | !!! FAILURE !!! Minimal Linux Live is not running in QEMU."
+  echo "`date` | !!! 失败 !!! FasterEdgeOS 未在 QEMU 中运行。"
   exit 1
 else
-  echo "`date` | Minimal Linux Live is running in QEMU. Waiting for automatic shutdown."
+  echo "`date` | FasterEdgeOS 正在 QEMU 中运行，等待自动关机。"
 fi
 
 RETRY=10
 while [ ! "$RETRY" = "0" ] ; do
-  echo "`date` | Countdown: $RETRY"
+  echo "`date` | 倒计时：$RETRY"
   if [ "`ps -ef | grep -i [q]emu-system`" = "" ] ; then
     break
   fi
@@ -46,9 +46,9 @@ while [ ! "$RETRY" = "0" ] ; do
 done
 
 if [ "`ps -ef | grep -i [q]emu-system`" = "" ] ; then
-  echo "`date` | Minimal Linux Live is not running in QEMU."
+  echo "`date` | FasterEdgeOS 未在 QEMU 中运行。"
 else
-  echo "`date` | !!! FAILURE !!! Minimal Linux Live is still running in QEMU."
+  echo "`date` | !!! 失败 !!! FasterEdgeOS 仍在 QEMU 中运行。"
   exit 1
 fi
 
@@ -56,12 +56,12 @@ cat << CEOF
 
   ##################################################################
   #                                                                #
-  #  QEMU test passed. Clean manually the affected MLL artifacts.  #
+  #  QEMU 测试通过。请手动清理受影响的 FasterEdgeOS 产物。         #
   #                                                                #
   ##################################################################
 
 CEOF
 
-echo "`date` | *** MLL QEMU test - END ***"
+echo "`date` | *** FasterEdgeOS QEMU 测试 - 结束 ***"
 
 set +e

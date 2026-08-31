@@ -6,15 +6,15 @@ set -e
 
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
-# Read the common configuration properties.
+# 读取公共配置属性。
 INSTALL_PIP=`read_property INSTALL_PIP`
 PIP_PACKAGES=`read_property PIP_INSTALL_PACKAGES`
 
 if [ "$INSTALL_PIP" = "true" ] ; then
-  echo "Installing pip packages."
+  echo "正在安装 pip 软件包。"
   for package in ${PIP_PACKAGES//,/ }
   do 
-    echo "Installing package '$package'."
+    echo "正在安装软件包 '$package'。"
 
     CFLAGS="$CFLAGS" \
 	CXXFLAGS="$CXXFLAGS" \

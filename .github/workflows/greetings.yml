@@ -12,5 +12,5 @@ jobs:
     - uses: actions/first-interaction@v1
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-        issue-message: 'Thank you for contributing to Minimal Linux Live! :)'
-        pr-message: 'Thank you for contributing to Minimal Linux Live! :)'
+        issue-message: '感谢你为 FasterEdgeOS 提交 Issue！:)'
+        pr-message: '感谢你为 FasterEdgeOS 提交 Pull Request！:)'

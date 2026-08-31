@@ -3,5 +3,5 @@
 dropbear
 
 cat << CEOF
-[1m  Dropbear SSH server has been started.[0m
+[1m  Dropbear SSH 服务器已启动。[0m
 CEOF

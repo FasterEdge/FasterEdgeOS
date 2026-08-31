@@ -1,297 +1,236 @@
-# Minimal Linux Live
+<div align="center">
+  <img src="https://avatars.githubusercontent.com/u/245985800?s=200&v=4" alt="FasterEdge logo" width="100" />
+  <h1>FasterEdgeOS</h1>
+  <p>基于 Linux 内核与 FasterEdge 生态的轻量边缘计算操作系统</p>
+</div>
 
-* [Overview](#overview)
-* [Current development state](#current-development-state)
-* [MLL on ARM (AArch64)](#mll-on-arm-aarch64)
-* [Future improvements](#future-improvements)
-* [How to build](#how-to-build)
-* [Overlay bundles](#overlay-bundles)
-* [Runtime software](#runtime-software)
-* [GraalVM](#graalvm)
-* [BIOS and UEFI](#bios-and-uefi)
-* [Installation](#installation)
-* [Publications](#publications)
-* [Related projects](#related-projects)
-* [Thank you!](#thank-you)
+## 一、项目简介
 
-### Stargazers over time
+FasterEdgeOS 是一个面向边缘节点和集群设备的轻量 Linux 发行版。系统基于 Linux 内核、GNU C Library 和 BusyBox 构建，通过 overlay 机制集成 FasterEdge 运行环境及系统服务。
 
-[![Stargazers over time](https://starchart.cc/ivandavidov/minimal.svg)](https://starchart.cc/ivandavidov/minimal)
+当前仓库保留了从源码构建系统镜像的能力，后续将逐步集成：
 
----
+- FasterEdge 节点运行时
+- FasterEdge2Api 集群拓扑与系统管理 API
+- FasterEdgeOS 进程监管与服务管理
+- 系统健康检查、日志和资源状态
+- 带签名校验与回滚能力的远程更新
 
-### Overview
+> 当前版本处于基础系统改造阶段。已经具备 Linux Live ISO、BIOS/UEFI 和 x86/AArch64 构建基础；FasterEdge 服务的自动部署正在通过 overlay bundle 接入。
 
-Minimal Linux Live (MLL) is a tiny educational Linux distribution, which is designed to be built from scratch by using a collection of automated shell scripts. Minimal Linux Live offers a core environment with just the Linux kernel, GNU C library, and Busybox userland utilities. Additional software can be included in the ISO image at build time by using a well-documented [configuration file](src/.config).
+## 二、系统组成
 
-The generated ISO image file contains Linux kernel, GNU C library compiled with default options, Busybox compiled with default options, quite simple initramfs structure and some "overlay bundles" (the default build process provides few overlay bundles). You don't get Windows support out of the box, nor you get any fancy desktop environment (refer to the [Debootstrap Live](https://github.com/zac87/debootstrap_live) project if you need minimal system with network and UI). All you get is a simple shell console with default Busybox applets, network support via DHCP and... well, that's all. This is why it's called "minimal".
- 
-Note that by default Minimal Linux Live provides support for legacy BIOS systems. You can change the build configuration settings in the [.config](src/.config) file and rebuild MLL with support for modern UEFI systems.
- 
-All build scripts are well organized and quite small in size. You can easily learn from the scripts, reverse engineer the build process and later modify them to include more stuff (I encourage you to do so). After you learn the basics, you will have all the necessary tools and skills to create your own fully functional Linux based operating system which you have built entirely from scratch.
-
-The [guidebook](https://ivandavidov.github.io/minimal/book) explains in details the MLL architecture and the build process. This is the recommended documentation resource if you want to have complete understanding of the MLL ecosystem.
-
-You are encouraged to read the [tutorial](src/the_dao_of_minimal_linux_live.txt) which explains the minimalistic MLL build process. The same tutorial, along with all MLL source code, can be found in the ISO image structure in the ``/minimal/rootfs/usr/src directory``.
-
-The project has been supported by the cool guys at [Microweber](http://microweber.com "Microweber - Website Builder and Laravel CMS") - check them out. :)
-
-Website and mirrors are available here:
-
-* [ivandavidov.github.io/minimal](https://ivandavidov.github.io/minimal "Minimal Linux Live")
-* [skamilinux.hu/minimal](https://skamilinux.hu/minimal "Minimal Linux Live")
-
-List of [related projects](#related-projects) is available in the end of this document. If you don't find what you're looking for in MLL, perhaps you'll find it in the related projects, e.g. minimal Linux system with graphical user interface (GUI), or perhaps minimal Linux system with option to run Docker containers.
-
-The [README](src/README) document and the main [.config](src/.config) file provide extensive documentation regarding the Minimal Linux Live features.
-
-[The DAO of Minimal Linux Live](http://minimal.idzona.com/the_dao_of_minimal_linux_live.txt "The DAO of Minimal Linux Live") - this tutorial explains step by step what you need to do in order to create your own minimalistic live Linux OS. The tutorial is based on the first published version of Minimal Linux Live.
-
-[Component Architecture of Minimal Linux Live](http://blog.idzona.com/2016/04/component-architecture-of-minimal-linux-live.html "Component Architecture of Minimal Linux Live") - this publication describes the high level components included in the '03-Apr-2016' version of Minimal Linux Live.
-
-Did I mention the [YouTube channel](https://youtu.be/u5KYDaCLChc?list=PLe3TW5jDbUAiN9E9lvYFLIFFqAjjZS9xS "Minimal Linux Live - YouTube channel") where you can watch some of the cool Minimal Linux Live features? No? Well, now you know about it! :)
-
-### Current development state
-
-As of **09-Jun-2022**:
-
-* Linux kernel 5.18.3
-* GNU C Library 2.35
-* Busybox 1.34.1
-
-Stable build on default Ubuntu 22.04 installation with applied system updates.
-
-Here are some screenshots of the latest published version of Minimal Linux Live:
-
-![Minimal Linux Live](docs/assets/img/minimal_linux_live.png)
-
-![Minimal Linux Live Readme](docs/assets/img/readme_in_mll.png)
-
-You can experiment with Minimal Linux Live directly in your browser by using [JavaScript PC Emulator](http://minimal.idzona.com/emulator "Minimal Linux Live in JavaScript PC emulator"). Here is a screenshot:
-
-![Minimal Linux Live JavaScript Emulator](docs/assets/img/emulator_01.jpg)
-
-### MLL on ARM (AArch64)
-
-A preview of MLL on ARM (AArch64) can be found in the branch [aarch64](https://github.com/ivandavidov/minimal/tree/aarch64/src).
-
-* Install Ubuntu Server 22.04 for ARM 64 (AArch64).
-* Resolve the following additional dependencies on top of the MLL required dependencies: qemu-system-aarch64, rsync, bzip2, dosfstools
-* Execute scripts 00 to 10.
-* Execute [qemu-aarch64.sh](https://github.com/ivandavidov/minimal/blob/aarch64/src/qemu-aarch64.sh) and then switch to the QEMU serial console.
-
-![Minimal Linux Live on ARM64 (AArch64)](docs/assets/img/mll-aarch64.png)
-
-### Future improvements
-
-Take a look at the [issues](http://github.com/ivandavidov/minimal/issues) page where all future MLL improvements are tracked.
-
-### How to build
-
-The section below is for Ubuntu and other Debian based distros.
-
+```text
+Linux Kernel
+    ↓
+GNU C Library
+    ↓
+BusyBox 用户空间
+    ↓
+FasterEdgeOS 基础 rootfs
+    ↓
+overlay bundles
+    ↓
+FasterEdgeOS ISO / rootfs 镜像
 ```
-# Update all repositories and upgrade all packages
+
+系统启动后提供最小化 Shell、网络基础能力和 overlay 软件。FasterEdgeOS 自有组件建议安装到以下位置：
+
+```text
+/usr/bin/                         可执行程序
+/etc/fasteredgeos/                系统配置
+/etc/init.d/                      服务启动脚本
+/var/lib/fasteredgeos/            运行数据、版本和更新状态
+/var/log/fasteredgeos/            系统服务日志
+/opt/fasteredgeos/releases/       A/B 版本目录
+```
+
+## 三、快速构建
+
+构建主机建议使用 Debian/Ubuntu Linux。macOS、Windows 建议通过 Linux 虚拟机或 CI 构建。
+
+### 1. 安装依赖
+
+```bash
 sudo apt update
-sudo apt upgrade -y
-
-# Resolve build dependencies
-sudo apt install -y wget make gawk gcc bc bison flex xorriso libelf-dev libssl-dev
-
-# Build everything and produce ISO image.
-./build_minimal_linux_live.sh
+sudo apt install -y \
+  wget make gawk gcc bc bison flex xorriso \
+  libelf-dev libssl-dev file cpio gzip xz-utils
 ```
 
-The section below is for SUSE.
+AArch64 构建和 QEMU 测试还需要：
 
-```
-# Refresh all repositeries and update all packages
-sudo zypper refresh
-sudo zypper update -y
-
-# Resolve build dependencies
-sudo zypper install -y make gcc flex bison libelf-devel libopenssl-devel bc xorriso
-
-# Build everything and produce ISO image.
-./build_minimal_linux_live.sh
+```bash
+sudo apt install -y qemu-system-aarch64 rsync bzip2 dosfstools
 ```
 
+### 2. 配置构建参数
 
-The default build process uses some custom provided ``CFLAGS``. They can be found in the ``.config`` file. Some of these additional flags were introduced in order to fix different issues which were reported during the development phase. However, there is no guarantee that the build process will run smoothly on your system with these particular flags. If you get compilation issues (please note that I'm talking about compilation issues, not about general shell script issues), you can try to disable these flags and then start the build process again. It may turn out that on your particular host system you don't need these flags.
+编辑：
 
-### Overlay bundles
-
-**Important note!** Most of the overlay bundles come with no support since the build process for almost all of them is host specific and can vary significantly between different machines. Some overlay bundles have no dependencies to the host machine, e.g. the bundles which provide the DHCP functionality and the MLL source code. These bundles are enabled by default.
-
-Minimal Linux Live has the concept of ``overlay bundles``. During the boot process the ``OverlayFS`` driver merges the initramfs with the content of these bundles. This is the mechanism which allows you to provide additional software on top of MLL without touching the core build process. In fact the overlay bundle system has been designed to be completely independent from the MLL build process. You can build one or more overlay bundles without building MLL at all. However, some of the overlay bundles have dependencies on the software pieces provided by the MLL build process, so it is recommended to use the overlay build subsystem after you have produced the 'initramfs' area.
-
-The overlay bundle system provides dependency management. If bundle 'b' depends on bundle 'a' you don't need to build bundle 'a' manually in advance. The bundle dependencies are described in special metadata file ``bundle_deps`` and all such dependencies are prepared automatically.
-
-```
-# How to build all overlay bundles.
-
-cd minimal_overlay
-./overlay_build.sh
+```bash
+vi src/.config
 ```
 
-```
-# How to build specific overlay bundle. The example is for 'Open JDK'
-# which depends on many GNU C libraries and on ZLIB. All dependencies
-# are handled automatically by the overlay bundle system.
+常用参数：
 
-cd minimal_overlay
-./overlay_build.sh openjdk
-```
-
-Take a look at the [mll_hello](src/minimal_overlay/bundles/mll_hello/bundle.sh) overlay bundle which compiles simple C program (it prints one line in the console) and installs it properly in the MLL overlay structure.
-
-### Runtime software
-
-Another way to add software in MLL is at runtime by using slightly modified version of [static-get](http://s.minos.io) which is provided as additional overlay bundle. The ``static_get`` overlay bundle is not enabled by default. You can enable it in the main ``.config`` file. Here are some examples with static-get:
-
-```
-# Search for 'vim'
-static-get -s vim
-
-# Install the 'vim' package. Run 'vim' after that
-static-get -i vim
-
-# Search for 'tetris'
-static-get -s tetris
-
-# Install the 'vitetris' package. Run 'vitetris' after that
-static-get -i vitetris
+```text
+FIRMWARE_TYPE=bios       # bios / uefi / both
+OVERLAY_TYPE=folder      # folder / sparse
+OVERLAY_LOCATION=iso     # iso / rootfs
+BUILD_KERNEL_MODULES=false
+JOB_FACTOR=1
 ```
 
-### GraalVM
+### 3. 构建 FasterEdgeOS
 
-The current development version of MLL partially supports [GraalVM](http://graalvm.org) (provided as overlay bundle). Note that GraalVM has runtime dependencies on ``GCC`` and ``Bash`` and therefore some GraalVM feature are not supported in MLL, e.g. the ``gu`` updater and almost all GVM language wrapper scripts, including the ``R`` wrappers. Nevertheless, the core GVM features work fine. Java, Python, Ruby, Node and JavaScript work in MLL/GraalVM environment. Great, isn't it! :)
-
-![GraalVM languages](docs/assets/img/graal/graal_1.jpg)
-
-![GraalVM - Java](docs/assets/img/graal/graal_2.jpg)
-
-![GraalVM - Python](docs/assets/img/graal/graal_3.jpg)
-
-![GraalVM - Ruby](docs/assets/img/graal/graal_4.jpg)
-
-![GraalVM - Node](docs/assets/img/graal/graal_5.jpg)
-
-![GraalVM - JS](docs/assets/img/graal/graal_6.jpg)
-
-### BIOS and UEFI
-
-Minimal Linux Live can be used on UEFI systems (as of version ``28-Jan-2018``) thanks to the [systemd-boot](https://github.com/ivandavidov/systemd-boot) project. There are three build flavors that you can choose from:
-
-* ``bios`` - MLL will be bootable only on legacy BIOS based systems. This is the default build flavor.
-* ``uefi`` - MLL will be bootable only on UEFI based systems.
-* ``both`` - MLL will be bootable on both legacy BIOS and modern UEFI based systems.
-
-The generated MLL iso image is 'hybrid' which means that if it is 'burned' on external hard drive, this external hard drive will be bootable. You can use this behavior to install MLL on your USB flash device (read the next section).
-
-The older version of Minimal Linux Live ``20-Jan-2017`` has experimental UEFI support and the MLL ISO image can be used on legacy BIOS based systems and on UEFI based systems with enabled UEFI shell (level support 1 or higher, see section ``3.1 - Levels Of Support`` of the [UEFI Shell specification](http://www.uefi.org/sites/default/files/resources/UEFI_Shell_2_2.pdf)). All newer versions of Minimal Linux Live have full UEFI support.
-
-### Installation
-
-The build process produces ISO image which you can use in virtual machine or you can burn it on real CD/DVD. Installing MLL on USB flash drive currently is not supported but it can be easily achieved by using ``syslinux`` or  ``extlinux`` since MLL requires just two files (one kernel file and another initramfs file). This applies for legacy BIOS based systems.
-
-Another way to install MLL on USB flash drive is by using [YUMI](http://pendrivelinux.com/yumi-multiboot-usb-creator) or other similar tools. This applies for legacy BIOS based systems.
-
-Yet another way to install MLL on USB flash drive is by using the ``dd`` tool:
-
-```
-# Directly write the ISO image to your USB flash device (e.g. /dev/xxx)
-dd if=minimal_linux_live.iso of=/dev/xxx
+```bash
+cd src
+make all
 ```
 
-The USB flash device will be recognized as bootable device and you should be able to boot MLL successfully from it. If you have chosen the 'combined' build flavor (i.e. value ``both`` for the corresponding configuration property), then your USB flash device will be bootable on both legacy BIOS and modern UEFI based systems.
+构建完成后生成：
 
-The build process also generates a compressed filesystem image file ``mll_image.tgz`` which contains everything from the initramfs area and everything from the overlay area, i.e. all overlay bundles that have been installed during the MLL build process. You can import and use the filesystem image in Docker like this:
-
-```
-# Import the MLL filesystem image in Docker.
-docker import mll_image.tgz minimal-linux-live:latest
-
-# Run MLL shell in Docker:
-docker run -it minimal-linux-live /bin/sh
+```text
+src/fasteredgeos.iso
+src/fasteredgeos_image.tgz
 ```
 
-It is also possible to start MLL over network, using PXE mechanism (often called PXE diskless boot). To achieve that, before building MLL, edit src/.config and set ``OVERLAY_LOCATION`` to ``rootfs`` instead of default ``iso``. Then follow build process, which will build the minimal_linux_live.iso. Extract kernel and rootfs from this iso, and assuming webserver is using ``/var/www/html/`` folder as index, copy files here:
+如果需要重新构建：
 
-```
-mount minimal_linux_live.iso /mnt
-cp -a /mnt/boot/kernel.xz /var/www/html/
-cp -a /mnt/boot/rootfs.xz /var/www/html/
-```
-
-Note: on RHEL systems, remember to restore SELinux contexts using ``restorecon -Rv /var/www/html/``.
-
-Then assuming you are using iPXE as a PXE rom, and that your webserver ip is 10.0.0.1, create file ``/var/www/html/MLL.ipxe`` with the following content:
-
-```
-#!ipxe
-echo Booting MLL
-kernel http://10.0.0.1/kernel.xz initrd=rootfs.xz
-initrd http://10.0.0.1/rootfs.xz
-imgstat
-echo All files downloaded, booting in 2s...
-sleep 2
-boot
+```bash
+cd src
+make clean
+make all
 ```
 
-Note: append your console parameter on the kernel line if using a remote IPMI console.
+## 四、启动与测试
 
-And chainload your mail iPXE to this file.
+### BIOS 模式
 
-### Publications
+```bash
+cd src
+./qemu-bios.sh
+```
 
-Case studies, research papers, publications, presentations, etc. regarding [Minimal Linux Live](https://github.com/ivandavidov/minimal) and [Minimal Linux Script](https://github.com/ivandavidov/minimal-linux-script).
+### UEFI 模式
 
-* [Software and Hardware Test - Minimal Linux](https://www.dotsource.de/labs/wp-content/uploads/sites/4/2019/06/Software-und-Hardwaretest-Minimal-Linux.pdf) (PDF, German language, [dotSource Labs](https://www.dotsource.de/labs/2019/06/17/software-und-hardwaretest-minimal-linux/))
-* [MINCS - Containers in the Shell Script](https://www.slideshare.net/mhiramat/mincs-containers-in-the-shell-script-54420001) (presentation, English language, reference to Minimal Linux Live)
-* [The Evolution of Minimal Linux Live](https://softuni.bg/downloads/svn/seminars/Minimal-Linux-Live-25-June-2016/Minimal-Linux-Live.pptx) (Power Point, Bulgarian language, [SoftUni seminar](https://softuni.bg/trainings/1409/minimal-linux-live-the-easy-way-to-create-a-minimal-linux-based-operating-system))
-* [Considerations for the SDP Operating System](http://ska-sdp.org/sites/default/files/attachments/sdp_memo_063_os_signed_21.10.18.pdf) (PDF, English language, reference to Minimal Linux Live)
+```bash
+cd src
+./qemu-uefi.sh
+```
 
-### Related projects
+### Docker rootfs 测试
 
-List of cool forks, spin-offs and other related projects inspired by Minimal Linux Live.
+```bash
+cd src
+docker import fasteredgeos_image.tgz fasteredgeos:latest
+docker run --rm -it fasteredgeos:latest /bin/sh
+```
 
-* [Minimal Linux Script](https://github.com/ivandavidov/minimal-linux-script) - very simplified and minimalistic version of MLL. This project is recommended as a starting point for beginners.
+### 写入 USB
 
-* [systemd-boot](https://github.com/ivandavidov/systemd-boot) - this project provides the UEFI boot loader images that MLL relies on. It also provides helper shell scripts which generate UEFI compatible MLL ISO images out of the already existing BIOS compatible MLL ISO images.
+> 写入设备会覆盖目标磁盘，请确认设备路径后再执行。
 
-* [Bare Minimal Linux](https://github.com/sapcc/bare-minimal-linux) - fork of minimal linux for baremetal debugging. This project is part of the [SAP Converged Cloud](https://en.wikipedia.org/wiki/SAP_Converged_Cloud) ecosystem.
+```bash
+cd src
+sudo ./write_to_media.sh /dev/sdX
+```
 
-* [Minimal Linux FIRESTARTER](https://github.com/tud-zih-energy/minimal-linux-FIRESTARTER) - minimal Linux distribution with integrated [FIRESTARTER](https://tu-dresden.de/zih/forschung/projekte/firestarter) processor stress test utility. This project is developed at [TU Dresden - Centre for Information Services and High Performance Computing](https://tu-dresden.de/zih).
+## 五、FasterEdge 服务自动部署计划
 
-* [Prognostic Linux Live](https://github.com/ouyangjn/PrognosticLinux) - stripped down Linux environment for the development and experiments at the [Prognostic Lab](http://www.prognosticlab.org) at the University of Pittsburgh.
+FasterEdgeOS 使用 overlay bundle 把额外的软件打进最终 rootfs。FasterEdge 相关组件放在：
 
-* [Minimal Container Linux](https://github.com/prologic/minimal-container-linux) - a Linux host OS designed to run Containers with a minimalist design and small footprint.
+```text
+src/minimal_overlay/bundles/fasteredgeos/
+```
 
-* [Debootstrap Live](https://github.com/zac87/debootstrap_live) - this spin-off of MLL generates bootable ISO with current kernel and [debootstrap](https://wiki.debian.org/Debootstrap) base system.
+该 bundle 负责：
 
-* [Boot2Minc](https://github.com/mhiramat/boot2minc) - this fork adds [Mincs](https://github.com/mhiramat/mincs) and as result you can run Linux containers inside MLL. One interesting Mincs feature - it provides tools which allow you to reuse already existing Docker containers.
+- 编译或安装 `fasteredge2api`
+- 安装 FasterEdge 运行时和配置
+- 安装 `fasteredge-supervisor`
+- 创建 `/etc/init.d/` 服务脚本
+- 初始化 `/etc/fasteredgeos/`、`/var/lib/fasteredgeos/` 和日志目录
+- 在系统启动时自动启动基础服务
 
-* [K1773R's MLL](https://github.com/K1773R/minimal) - PowerPC version of Minimal Linux Live with [memtester](http://pyropus.ca/software/memtester) as additional software. Impressive work!
+配置启用后，普通构建命令会自动把 FasterEdgeOS 服务打入镜像：
 
-* [Ladiko's MLL](https://github.com/ladiko/minimal) - this fork automatically downloads and uses the latest available Kernel and Busybox sources. By default there is NTFS and SquashFS support. The fork also provides an installer which can be used to put MLL on USB flash device.
+```text
+OVERLAY_BUNDLES=dhcp,fasteredgeos
+```
 
-* [StelaLinux](https://github.com/AwlsomeAlex/stelalinux) - the successor of [StarLinux](https://github.com/AwlsomeAlex/StarLinux) and [AwlsomeLinux](https://github.com/AwlsomeAlex/AwlsomeLinux). These projects are spin-offs of MLL that take different build approach.
+服务管理采用 BusyBox init 兼容方式，不依赖 systemd：
 
-* [prologic's MLL](https://github.com/prologic/minimal) - this fork adds Python support to the MLL runtime environment.
+```text
+BusyBox init
+    ↓
+/etc/inittab
+    ↓
+/etc/init.d/fasteredge-supervisor
+    ↓
+fasteredge2api + FasterEdge 节点服务
+```
 
-* [KernelISO](https://github.com/rleon/kerneliso) - extended version of MLL, based on older version of MLL.
+## 六、系统管理与远程更新
 
-* [diaob's MLL](https://github.com/Diaob/minimal) - MLL translation to Simplified Chinese.
+FasterEdge2Api 将作为系统管理入口，逐步提供：
 
-* [bdheeman's MLL](https://bitbucket.org/bdheeman/minimal) - MLL KISS fork (Keep It, Simple, Safe/Secure/Stupid).
+- 节点和网卡信息
+- 进程、服务和运行状态
+- CPU、内存、磁盘和系统健康状态
+- FasterEdge 集群拓扑与 peer 管理
+- Cloud/Edge 节点状态
+- 更新检查、下载、安装和回滚
 
-* [Runlinux](https://github.com/cirosantilli/runlinux) - environment to build and test Linux kernels.
+远程更新采用版本目录切换方式：
 
-* [Ersoy Kardesler Minimal Linux System](https://notabug.org/ersoy-kardesler/minimal-linux-system) - A minimal Linux script fork, adds custom Linux and BusyBox configs, NCURSES and GNU nano.
+```text
+/opt/fasteredgeos/releases/0.1.0/
+/opt/fasteredgeos/releases/0.2.0/
+/opt/fasteredgeos/current -> releases/0.2.0
+```
 
-### Thank you!
+更新必须经过：
 
-Don't miss the chance to share your honest opinion about MLL in [DistroWatch](http://distrowatch.com/dwres.php?resource=ratings&distro=mll). And don't forget to check the Minimal Linux Live page on [Facebook](http://facebook.com/MinimalLinuxLive).
+```text
+下载 → SHA256/签名校验 → 空间检查 → 安装 → 健康检查 → 切换或回滚
+```
 
-Thank you for your support!
+所有远程管理操作应使用 HTTPS，并只允许经过授权的管理员令牌执行。
+
+## 七、目录说明
+
+```text
+FasterEdgeOS/
+├── src/                         # 系统源码与构建入口
+│   ├── .config                  # 主构建配置
+│   ├── Makefile                 # make all/clean/qemu/test
+│   ├── 00_* ~ 16_*              # 分阶段构建脚本
+│   ├── minimal_boot/             # BIOS/UEFI 启动文件
+│   ├── minimal_config/           # 内核和 BusyBox 配置
+│   ├── minimal_overlay/          # overlay bundle
+│   ├── minimal_rootfs/           # 基础 rootfs
+│   └── common.sh                 # 构建公共函数
+├── CONTRIBUTING.md               # 开发和提交规范
+├── LICENSE                       # 开源许可证
+└── README.md                     # 中文项目说明
+```
+
+## 八、开发约定
+
+- 所有新增系统组件优先实现为 `src/minimal_overlay/bundles/` 下的独立 bundle。
+- 服务必须兼容 BusyBox init，不默认依赖 systemd。
+- 构建脚本使用 POSIX Shell，并在失败时立即退出。
+- 网络更新必须校验下载内容，禁止直接覆盖当前运行版本。
+- 管理 API 默认只监听可信网络；生产环境必须启用 TLS。
+- 修改构建流程后至少执行 shell 语法检查和 QEMU/Docker 基础验证。
+
+## 九、相关项目
+
+- [FasterEdge](https://github.com/FasterEdge/FasterEdge)：边缘计算框架。
+- [FasterEdge2Api](https://github.com/FasterEdge/FasterEdge2Api)：FasterEdge 集群拓扑与系统管理 HTTP API。
+
+## License
+
+本项目遵循仓库中的 [LICENSE](LICENSE) 文件。系统中使用的 Linux、GNU C Library、BusyBox 和其他第三方组件分别遵循其原始许可证。

@@ -2,14 +2,14 @@
 
 set -e
 
-# Load common properties and functions in the current script.
+# 在当前脚本中加载公共属性和函数。
 . ./common.sh
 
-echo "*** CLEAN BEGIN ***"
+echo "*** 清理开始 ***"
 
-echo "Cleaning up the main work area. This may take a while."
+echo "正在清理主工作区，这可能需要一些时间。"
 rm -rf $WORK_DIR
 mkdir $WORK_DIR
 mkdir -p $SOURCE_DIR
 
-echo "*** CLEAN END ***"
+echo "*** 清理结束 ***"

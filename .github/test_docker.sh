@@ -1,23 +1,23 @@
 #!/bin/sh
 
-# This script is supposed to be executed by GitHub workflow.
+# 本脚本由 GitHub 工作流调用。
 
 set -e
 
 cd ../src
 
-echo "`date` | *** MLL Docker test - BEGIN ***"
+echo "`date` | *** FasterEdgeOS Docker 测试 - 开始 ***"
 
-docker import mll_image.tgz minimal-linux-live:latest
-docker run minimal-linux-live /bin/cat /etc/motd
+docker import fasteredgeos_image.tgz fasteredgeos:latest
+docker run fasteredgeos /bin/cat /etc/motd
 
-echo "`date` | *** MLL Docker test - END ***"
+echo "`date` | *** FasterEdgeOS Docker 测试 - 结束 ***"
 
 cat << CEOF
 
   #########################
   #                       #
-  #  Docker test passed.  #
+  #  Docker 测试通过。  #
   #                       #
   #########################
 

@@ -4,31 +4,31 @@ set -e
 
 . ../../common.sh
 
-# Read the common configuration properties.
+# 读取公共配置属性。
 DOWNLOAD_URL=`read_property STATIC_GET_URL`
 USE_LOCAL_SOURCE=`read_property USE_LOCAL_SOURCE`
 
 if [ "$USE_LOCAL_SOURCE" = "true" -a ! -f $MAIN_SRC_DIR/source/overlay/static-get.sh  ] ; then
-  echo "Shell script $MAIN_SRC_DIR/source/overlay/static-get.sh is missing and will be downloaded."
+  echo "Shell 脚本 $MAIN_SRC_DIR/source/overlay/static-get.sh 缺失，将进行下载。"
   USE_LOCAL_SOURCE="false"
 fi
 
 cd $MAIN_SRC_DIR/source/overlay
 
 if [ ! "$USE_LOCAL_SOURCE" = "true" ] ; then
-  # Downloading static-get shell script file. The '-c' option allows the download to resume.
-  echo "Downloading static-get shell script from $DOWNLOAD_URL"
+  # 下载 static-get shell 脚本文件。'-c' 选项允许断点续传下载。
+  echo "正在从 $DOWNLOAD_URL 下载 static-get shell 脚本"
   wget -O static-get.sh -c $DOWNLOAD_URL
 else
-  echo "Using local static-get shell script $MAIN_SRC_DIR/source/overlay/static-get.sh"
+  echo "使用本地 static-get shell 脚本 $MAIN_SRC_DIR/source/overlay/static-get.sh"
 fi
 
-# Delete folder with previously prepared static-get.
-echo "Removing static-get work area. This may take a while."
+# 删除之前准备好的 static-get 文件夹。
+echo "正在移除 static-get 工作区，这可能需要一些时间。"
 rm -rf $WORK_DIR/overlay/$BUNDLE_NAME
 mkdir $WORK_DIR/overlay/$BUNDLE_NAME
 
-# Copy static-get to folder 'work/overlay/static_get'.
+# 将 static-get 复制到文件夹 'work/overlay/static_get'。
 cp static-get.sh $WORK_DIR/overlay/$BUNDLE_NAME
 
 cd $SRC_DIR

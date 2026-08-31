@@ -6,21 +6,21 @@ set -e
 
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
-# Change to the util-linux source directory which ls finds, e.g. 'util-linux-2.34'.
+# 切换到 util-linux 源码目录（由 ls 找到），例如 'util-linux-2.34'。
 cd $(ls -d util-linux-*)
 
 if [ -f Makefile ] ; then
-  echo "Preparing '$BUNDLE_NAME' work area. This may take a while."
+  echo "正在准备 '$BUNDLE_NAME' 的工作目录，这可能需要一些时间。"
   make -j $NUM_JOBS clean
 else
-  echo "The clean phase for '$BUNDLE_NAME' has been skipped."
+  echo "已跳过 '$BUNDLE_NAME' 的清理阶段。"
 fi
 
 rm -rf $DEST_DIR
 mkdir -p $DEST_DIR/usr/share/doc/util-linux
 mkdir -p $DEST_DIR/bin
 
-echo "Configuring '$BUNDLE_NAME'."
+echo "正在配置 '$BUNDLE_NAME'。"
 CFLAGS="$CFLAGS" ./configure \
   ADJTIME_PATH=/var/lib/hwclock/adjtime   \
   --prefix=$DEST_DIR \
@@ -38,18 +38,18 @@ CFLAGS="$CFLAGS" ./configure \
   --without-systemd    \
   --without-systemdsystemunitdir
 
-echo "Building '$BUNDLE_NAME'."
+echo "正在编译 '$BUNDLE_NAME'。"
 make -j $NUM_JOBS
 
-echo "Installing '$BUNDLE_NAME'."
+echo "正在安装 '$BUNDLE_NAME'。"
 make -j $NUM_JOBS install
 
-echo "Reducing '$BUNDLE_NAME' size."
+echo "正在精简 '$BUNDLE_NAME' 的体积。"
 reduce_size $DEST_DIR/bin
 
 install_to_overlay bin
 
-echo "Bundle '$BUNDLE_NAME' has been installed."
+echo "bundle '$BUNDLE_NAME' 已安装完成。"
 
 cd $SRC_DIR
 

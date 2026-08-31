@@ -2,8 +2,8 @@
 
 set -e
 
-# Common code used by all bundles. Should be included at the
-# top of every *.sh file of each bundle.
+# 所有软件包共用的代码。应包含在每个软件包的
+# 每个 *.sh 文件的顶部。
 
 export SRC_DIR=`realpath --no-symlinks $PWD`
 export MAIN_SRC_DIR=`realpath --no-symlinks $SRC_DIR/../../../`
@@ -17,33 +17,31 @@ export DEST_DIR=$WORK_DIR/overlay/$BUNDLE_NAME/${BUNDLE_NAME}_installed
 export CONFIG=$MAIN_SRC_DIR/.config
 export SYSROOT=$WORK_DIR/sysroot
 
-# This function reads property from the main '.config' file.
-# If there is local '.config' file in the current directory
-# the property value is overridden with the value found in
-# the local '.config' file, if the property is present there.
+# 该函数从主 '.config' 文件中读取属性。
+# 如果当前目录中存在本地 '.config' 文件，
+# 且该属性也出现在本地 '.config' 文件中，
+# 则属性值会被本地文件中找到的值覆盖。
 #
-# Using () instead of {} for the function body is a POSIX
-# compliant way to execute subshell and as consequence all
-# variables in the function will become effectively in local
-# scope. Note that the 'local' keyword is supported by most
-# shells but it is not POSIX compliant.
+# 使用 () 而不是 {} 作为函数体，是符合 POSIX 规范的执行子 shell
+# 的方式，因此函数中的所有变量实际上都会成为局部作用域变量。
+# 请注意，大多数 shell 支持 'local' 关键字，但它不符合 POSIX 规范。
 read_property() (
-  # The property we are looking for.
+  # 我们要查找的属性。
   prop_name=$1
 
-  # The value of the property set initially to empty string.
+  # 属性的值，初始设置为空字符串。
   prop_value=
 
   if [ ! "$prop_name" = "" ] ; then
-    # Search in the main '.config' file.
+    # 在主 '.config' 文件中搜索。
     prop_value="`grep -i ^${prop_name}= $CONFIG | cut -f2- -d'=' | xargs`"
 
     if [ -f $SRC_DIR/.config ] ; then
-      # Search in the local '.config' file.
+      # 在本地 '.config' 文件中搜索。
       prop_value_local="`grep -i ^${prop_name}= $SRC_DIR/.config | cut -f2- -d'=' | xargs`"
 
       if [ ! "$prop_value_local" = "" ] ; then
-        # Override the original value with the local value.
+        # 用本地值覆盖原始值。
         prop_value="$prop_value_local"
       fi
     fi
@@ -52,34 +50,34 @@ read_property() (
   echo "$prop_value"
 )
 
-# Read commonly used configuration properties.
+# 读取常用的配置属性。
 export JOB_FACTOR="`read_property JOB_FACTOR`"
 export CFLAGS="`read_property CFLAGS`"
 export NUM_CORES="$(grep ^processor /proc/cpuinfo | wc -l)"
 
-# Calculate the number of make "jobs"
+# 计算 make "jobs" 的数量
 export NUM_JOBS="$((NUM_CORES * JOB_FACTOR))"
 
-# Ideally we would export MAKE at this point with -j etc to allow programs to just run $(MAKE) and not worry about extra flags that need to be passed
+# 理想情况下，我们会在此处导出带 -j 等参数的 MAKE，让程序只需运行 $(MAKE) 而无需操心需要传递的额外标志
 # export MAKE="${MAKE-make} -j $NUM_JOBS"
 
 download_source() (
-  url=$1  # Download from this URL.
-  file=$2 # Save the resource in this file.
+  url=$1  # 从此 URL 下载。
+  file=$2 # 将资源保存到此文件中。
 
   local=`read_property USE_LOCAL_SOURCE`
 
   if [ "$local" = "true" -a ! -f $file  ] ; then
-    echo "Source file '$file' is missing and will be downloaded."
+    echo "源文件 '$file' 不存在，将进行下载。"
     local=false
   fi
 
   if [ ! "$local" = "true" ] ; then
-    echo "Downloading overlay source file from '$url'."
-    echo "Saving overlay source file in '$file'".
+    echo "正在从 '$url' 下载 overlay 源文件。"
+    echo "正在将 overlay 源文件保存到 '$file'".
     wget -O $file -c $url
   else
-    echo "Using local overlay source file '$file'."
+    echo "正在使用本地 overlay 源文件 '$file'。"
   fi
 )
 
@@ -87,12 +85,12 @@ extract_source() (
   file=$1
   name=$2
 
-  # Delete folder with previously extracted source.
-  echo "Removing overlay work area for '$name'. This may take a while."
+  # 删除之前已解压源码的文件夹。
+  echo "正在移除 '$name' 的 overlay 工作区，这可能需要一些时间。"
   rm -rf $OVERLAY_WORK_DIR/$name
   mkdir -p $OVERLAY_WORK_DIR/$name
 
-  # Extract source to folder 'work/overlay/$source'.
+  # 将源码解压到文件夹 'work/overlay/$source'。
   tar -xvf $file -C $OVERLAY_WORK_DIR/$name
 )
 
@@ -108,10 +106,10 @@ make_clean() (
   fi
 
   if [ -f Makefile ] ; then
-    echo "Preparing '$BUNDLE_NAME' work area. This may take a while."
+    echo "正在准备 '$BUNDLE_NAME' 工作区，这可能需要一些时间。"
     make_target $target
   else
-    echo "The clean phase for '$BUNDLE_NAME' has been skipped."
+    echo "已跳过 '$BUNDLE_NAME' 的清理阶段。"
   fi
 )
 
@@ -126,14 +124,14 @@ reduce_size() (
       strip -g $1 2>/dev/null
       set -e
     fi
-    
+
     shift
   done
 )
 
 install_to_overlay() (
-  # With '--remove-destination' all possibly existing soft links in
-  # $OVERLAY_ROOTFS will be overwritten correctly.
+  # 使用 '--remove-destination'，$OVERLAY_ROOTFS 中所有可能已存在的
+  # 软链接都会被正确覆盖。
 
   if [ "$#" = "2" ] ; then
     cp -r --remove-destination \

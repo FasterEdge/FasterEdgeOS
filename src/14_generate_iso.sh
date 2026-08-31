@@ -2,31 +2,31 @@
 
 set -e
 
-# Load common properties and functions in the current script.
+# 加载公共属性与函数。
 . ./common.sh
 
-# Generate ISO image for UEFI based systems.
+# 为 UEFI 系统生成 ISO 镜像。
 uefi() {
   cd $ISOIMAGE
 
-  # Now we generate 'hybrid' ISO image file which can also be used on
-  # USB flash drive, e.g. 'dd if=minimal_linux_live.iso of=/dev/sdb'.
+  # 生成 'hybrid' 类型 ISO，可直接用于 UEFI 启动或写入 U 盘,
+  # 例如 'dd if=fasteredgeos.iso of=/dev/sdb'。
   xorriso -as mkisofs \
     -isohybrid-mbr $WORK_DIR/syslinux/syslinux-*/bios/mbr/isohdpfx.bin \
     -c boot/boot.cat \
     -e boot/uefi.img \
       -no-emul-boot \
       -isohybrid-gpt-basdat \
-    -o $SRC_DIR/minimal_linux_live.iso \
+    -o $SRC_DIR/fasteredgeos.iso \
     $ISOIMAGE
 }
 
-# Generate ISO image for BIOS based systems.
+# 为 BIOS 系统生成 ISO 镜像。
 bios() {
   cd $ISOIMAGE
 
-  # Now we generate 'hybrid' ISO image file which can also be used on
-  # USB flash drive, e.g. 'dd if=minimal_linux_live.iso of=/dev/sdb'.
+  # 生成 'hybrid' 类型 ISO，可直接用于 BIOS 启动或写入 U 盘,
+  # 例如 'dd if=fasteredgeos.iso of=/dev/sdb'。
   xorriso -as mkisofs \
     -isohybrid-mbr $WORK_DIR/syslinux/syslinux-*/bios/mbr/isohdpfx.bin \
     -c boot/syslinux/boot.cat \
@@ -34,11 +34,11 @@ bios() {
       -no-emul-boot \
       -boot-load-size 4 \
       -boot-info-table \
-    -o $SRC_DIR/minimal_linux_live.iso \
+    -o $SRC_DIR/fasteredgeos.iso \
     $ISOIMAGE
 }
 
-# Generate ISO image for both BIOS and UEFI based systems.
+# 同时生成 BIOS 与 UEFI 兼容的 ISO 镜像。
 both() {
   cd $ISOIMAGE
 
@@ -53,20 +53,20 @@ both() {
     -e boot/uefi.img \
       -no-emul-boot \
       -isohybrid-gpt-basdat \
-    -o $SRC_DIR/minimal_linux_live.iso \
+    -o $SRC_DIR/fasteredgeos.iso \
   $ISOIMAGE
 }
 
-echo "*** GENERATE ISO BEGIN ***"
+echo "*** 生成 ISO 开始 ***"
 
 if [ ! -d $ISOIMAGE ] ; then
-  echo "Cannot locate ISO image work folder. Cannot continue."
+  echo "找不到 ISO 工作目录，无法继续。"
   exit 1
 fi
 
-# Read the 'FIRMWARE_TYPE' property from '.config'
+# 从 '.config' 读取 'FIRMWARE_TYPE' 属性。
 FIRMWARE_TYPE=`read_property FIRMWARE_TYPE`
-echo "Firmware type is '$FIRMWARE_TYPE'."
+echo "固件类型为 '$FIRMWARE_TYPE'。"
 
 case $FIRMWARE_TYPE in
   bios)
@@ -82,7 +82,7 @@ case $FIRMWARE_TYPE in
     ;;
 
   *)
-    echo "Firmware type '$FIRMWARE_TYPE' is not recognized. Cannot continue."
+    echo "无法识别的固件类型 '$FIRMWARE_TYPE'，构建中止。"
     exit 1
     ;;
 esac
@@ -93,10 +93,10 @@ cat << CEOF
 
   #################################################################
   #                                                               #
-  #  ISO image file 'minimal_linux_live.iso' has been generated.  #
+  #    已生成 ISO 镜像文件 'fasteredgeos.iso'。                    #
   #                                                               #
   #################################################################
 
 CEOF
 
-echo "*** GENERATE ISO END ***"
+echo "*** 生成 ISO 结束 ***"

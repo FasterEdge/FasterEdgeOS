@@ -16,53 +16,51 @@ OVERLAY_ROOTFS=$WORK_DIR/overlay_rootfs
 ISOIMAGE=$WORK_DIR/isoimage
 ISOIMAGE_OVERLAY=$WORK_DIR/isoimage_overlay
 
-# This function reads property from the main '.config' file.
+# 该函数从主 '.config' 文件中读取属性。
 #
-# Using () instead of {} for the function body is a POSIX
-# compliant way to execute subshell and as consequence all
-# variables in the function will become effectively in local
-# scope. Note that the 'local' keyword is supported by most
-# shells but it is not POSIX compliant.
+# 使用 () 而不是 {} 作为函数体，是符合 POSIX 规范的执行子 shell
+# 的方式，因此函数中的所有变量实际上都会成为局部作用域变量。
+# 请注意，大多数 shell 支持 'local' 关键字，但它不符合 POSIX 规范。
 read_property() (
-  # The property we are looking for.
+  # 我们要查找的属性。
   prop_name=$1
 
-  # The value of the property set initially to empty string.
+  # 属性的值，初始设置为空字符串。
   prop_value=
 
   if [ ! "$prop_name" = "" ] ; then
-    # Search in the main '.config' file.
+    # 在主 '.config' 文件中搜索。
     prop_value=`grep -i ^${prop_name}= $CONFIG | cut -f2- -d'=' | xargs`
   fi
 
   echo $prop_value
 )
 
-# Read commonly used properties from the main '.config' file.
+# 从主 '.config' 文件中读取常用属性。
 JOB_FACTOR=`read_property JOB_FACTOR`
 CFLAGS=`read_property CFLAGS`
 NUM_CORES=$(grep ^processor /proc/cpuinfo | wc -l)
 
-# Calculate the number of 'make' jobs to be used later.
+# 计算稍后要使用的 'make' 任务数。
 NUM_JOBS=$((NUM_CORES * JOB_FACTOR))
 
 download_source() (
-  url=$1  # Download from this URL.
-  file=$2 # Save the resource in this file.
+  url=$1  # 从此 URL 下载。
+  file=$2 # 将资源保存到此文件中。
 
   local=`read_property USE_LOCAL_SOURCE`
 
   if [ "$local" = "true" -a ! -f $file  ] ; then
-    echo "Source file '$file' is missing and will be downloaded."
+    echo "源文件 '$file' 不存在，将进行下载。"
     local=false
   fi
 
   if [ ! "$local" = "true" ] ; then
-    echo "Downloading source file from '$url'."
-    echo "Saving source file in '$file'".
+    echo "正在从 '$url' 下载源文件。"
+    echo "正在将源文件保存到 '$file'".
     wget -O $file -c $url
   else
-    echo "Using local source file '$file'."
+    echo "正在使用本地源文件 '$file'。"
   fi
 )
 
@@ -70,11 +68,11 @@ extract_source() (
   file=$1
   name=$2
 
-  # Delete folder with previously extracted source.
-  echo "Removing '$name' work area. This may take a while."
+  # 删除之前已解压源码的文件夹。
+  echo "正在移除 '$name' 工作区，这可能需要一些时间。"
   rm -rf $WORK_DIR/$name
   mkdir $WORK_DIR/$name
 
-  # Extract source to folder 'work/$source'.
+  # 将源码解压到文件夹 'work/$source'。
   tar -xvf $file -C $WORK_DIR/$name
 )

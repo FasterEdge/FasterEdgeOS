@@ -2,23 +2,23 @@
 
 set -e
 
-# Load common properties and functions in the current script.
+# 在当前脚本中加载公共属性和函数。
 . ./common.sh
 
-echo "*** PACK ROOTFS BEGIN ***"
+echo "*** 打包 ROOTFS 开始 ***"
 
-echo "Packing initramfs. This may take a while."
+echo "正在打包 initramfs，这可能需要一些时间。"
 
-# Remove the old 'initramfs' archive if it exists.
+# 如果旧的 'initramfs' 归档已存在，则将其移除。
 rm -f $WORK_DIR/rootfs.cpio.xz
 
 cd $ROOTFS
 
-# Packs the current 'initramfs' folder structure in 'cpio.xz' archive.
+# 将当前的 'initramfs' 文件夹结构打包到 'cpio.xz' 归档中。
 find . | cpio -R root:root -H newc -o | xz -9 --check=crc32 > $WORK_DIR/rootfs.cpio.xz
 
-echo "Packing of initramfs has finished."
+echo "initramfs 打包已完成。"
 
 cd $SRC_DIR
 
-echo "*** PACK ROOTFS END ***"
+echo "*** 打包 ROOTFS 结束 ***"

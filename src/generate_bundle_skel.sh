@@ -1,28 +1,27 @@
 #!/bin/bash
 
-# Generate basic template for a new overlay package
+# 为新的 overlay 软件包生成基本模板
 
-# Rename the package and package version variables and run this script to
-# generate a new overlay template
+# 重命名软件包和软件包版本变量，然后运行此脚本即可生成新的 overlay 模板
 
 package=test
 ver=2.1
 
 packcaps=${package^^}
 
-echo "Generating new overlay bundle template for '$package'."
+echo "正在为 '$package' 生成新的 overlay 软件包模板。"
 
 cp -r minimal_overlay/bundles/coreutils minimal_overlay/bundles/$package
 
-sed -i "s/.*Full path.*/# Full path will be something like \'work\/overlay\/$package\/$package-$ver\'./" minimal_overlay/bundles/$package/01_get.sh
-sed -i "s/.*Extract coreutils.*/# Extract coreutils to folder \'work\/overlay\/$package\'./" minimal_overlay/bundles/$package/01_get.sh
+sed -i "s/.*Full path.*/# 完整路径将类似 \'work\/overlay\/$package\/$package-$ver\'。" minimal_overlay/bundles/$package/01_get.sh
+sed -i "s/.*Extract coreutils.*/# 将 coreutils 解压到文件夹 \'work\/overlay\/$package\'。" minimal_overlay/bundles/$package/01_get.sh
 sed -i "s/COREUTILS/$packcaps/g" minimal_overlay/bundles/$package/01_get.sh
 sed -i "s/coreutils/$package/g" minimal_overlay/bundles/$package/01_get.sh
 
-sed -i "s/.*source directory which.*/# Change to the coreutils source directory which ls finds, e.g. \'$package-$ver\'./" minimal_overlay/bundles/$package/02_build.sh
+sed -i "s/.*source directory which.*/# 切换到 ls 找到的 coreutils 源码目录，例如 \'$package-$ver\'。" minimal_overlay/bundles/$package/02_build.sh
 sed -i "s/COREUTILS/$packcaps/g" minimal_overlay/bundles/$package/02_build.sh
 sed -i "s/coreutils/$package/g" minimal_overlay/bundles/$package/02_build.sh
 
-echo "Created new overlay bundle for $package."
-echo "Update .config with source location and a brief description."
-echo "Update README with package description and dependencies."
+echo "已为 $package 创建新的 overlay 软件包。"
+echo "请在 .config 中更新源码位置和简要说明。"
+echo "请在 README 中更新软件包说明和依赖项。"

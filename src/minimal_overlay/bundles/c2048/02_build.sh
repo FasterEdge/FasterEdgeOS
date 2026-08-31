@@ -14,6 +14,6 @@ strip -g 2048
 mkdir -p $OVERLAY_ROOTFS/usr/bin
 cp --remove-destination $PWD/2048 $OVERLAY_ROOTFS/usr/bin/
 
-echo "Bundle 'c2048' has been installed."
+echo "bundle 'c2048' 已安装完成。"
 
 cd $SRC_DIR
