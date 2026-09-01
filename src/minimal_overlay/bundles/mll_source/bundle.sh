@@ -19,7 +19,11 @@ mkdir -p $DEST_DIR/etc/autorun
 cp $MAIN_SRC_DIR/*.sh $DEST_DIR/usr/src
 cp $MAIN_SRC_DIR/.config $DEST_DIR/usr/src
 cp $MAIN_SRC_DIR/README $DEST_DIR/usr/src
-cp $MAIN_SRC_DIR/*.txt $DEST_DIR/usr/src
+# 仅当存在 '.txt' 文件时才复制（上游 MLL 有此类文件，本 fork 无，
+# 无匹配的 glob 会原样传给 cp 导致 "No such file or directory" 并中断构建）。
+if ls $MAIN_SRC_DIR/*.txt >/dev/null 2>&1 ; then
+  cp $MAIN_SRC_DIR/*.txt $DEST_DIR/usr/src
+fi
 
 # 将所有源码目录复制到 '/usr/src'。
 for MINIMAL_DIR in `ls -d $MAIN_SRC_DIR/minimal*/` ; do
