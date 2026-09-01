@@ -108,22 +108,26 @@ else
   # 检查是否在构建 64 位内核。
   if [ "`grep "CONFIG_X86_64=y" .config`" = "CONFIG_X86_64=y" ] ; then
     # 构建 64 位内核时启用混合（mixed）EFI 模式。
-    echo "CONFIG_EFI_MIXED=y" >> .config
+    # 6.6 的 x86_64_defconfig 已默认 CONFIG_EFI_MIXED=y，这里仅补充缺失时追加，
+    # 避免 .config 出现重复符号定义（否则 Kconfig 报 override 并可能进入交互确认）。
+    grep -q "^CONFIG_EFI_MIXED=y" .config || echo "CONFIG_EFI_MIXED=y" >> .config
   fi
 fi
 
 # 以“并行任务数 = 处理器数量”的优化方式编译内核。
 # 关于不同内核的详细说明：
 # http://unix.stackexchange.com/questions/5518/what-is-the-difference-between-the-following-kernel-makefile-terms-vmlinux-vmlinux
+# 注意：内核编译不要传用户 CFLAGS（$CFLAGS）。内核主 Makefile 使用 KBUILD_CFLAGS，用户
+# CFLAGS 仅在命令行赋值时会被 tools/objtool 等子 Makefile 继承，从而覆盖其 -I 搜索路径，
+# 导致 6.6 构建 objtool 时找不到 linux/compiler.h。内核安全加固请通过 CONFIG 选项配置
+# （见上文 STACKPROTECTOR_STRONG / FORTIFY_SOURCE / SECURITY_DMESG_RESTRICT）。
 echo "正在构建内核。"
 make \
-  CFLAGS="$CFLAGS" \
   bzImage -j $NUM_JOBS
 
 if [ "$BUILD_KERNEL_MODULES" = "true" ] ; then
   echo "正在构建内核模块。"
   make \
-    CFLAGS="$CFLAGS" \
     modules -j $NUM_JOBS
 fi
 
