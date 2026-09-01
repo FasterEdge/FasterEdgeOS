@@ -49,6 +49,12 @@ FasterEdgeOS ISO / rootfs 镜像
 
 构建主机建议使用 Debian/Ubuntu Linux。macOS、Windows 建议通过 Linux 虚拟机或 CI 构建。
 
+> **使用 GitHub Actions 自动构建**：仓库内置 `.github/workflows/manual.yml`，
+> 可在 GitHub 页面手动触发（Actions → Run workflow），或在推送 `v*` 标签
+> （如 `v0.1.0`）时自动构建。构建完成后会以 artifact 形式交付
+> `fasteredgeos.iso` 与 `fasteredgeos_image.tgz`（Docker 镜像，`docker import`
+> 即可使用），保留 14 天。
+
 > **工具链要求**：当前 glibc 2.44 需要 GCC 12.1+、binutils 2.39+、GNU make 4.0+。
 > 推荐使用 Ubuntu 24.04+（gcc 13.2 / binutils 2.42 / make 4.3）；Ubuntu 22.04 需
 > 自行安装新版 gcc/binutils，否则 glibc 构建会失败。

@@ -1,10 +1,14 @@
 name: 'FasterEdgeOS With Integration Tests'
-on: 'workflow_dispatch'
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'          # 打 v0.1.0 等标签时自动构建并产出镜像
 jobs:
   fasteredgeos-with-tests:
     runs-on: 'ubuntu-24.04'    # glibc 2.44 要求 GCC 12.1+/binutils 2.39+，22.04 不满足
     steps:
-    - uses: actions/checkout@v2    
+    - uses: actions/checkout@v4    
     - name: 'Apply Workflow Patches'
       run: |
         cd .github
@@ -89,3 +93,13 @@ jobs:
       run: |
         cd .github
         bash ./test_qemu.sh
+    - name: 'Upload Build Artifacts'
+      uses: actions/upload-artifact@v4
+      with:
+        name: 'fasteredgeos-${{ github.ref_name }}'
+        path: |
+          src/fasteredgeos.iso
+          src/fasteredgeos_image.tgz
+          src/fasteredgeos*.log
+        if-no-files-found: 'warn'
+        retention-days: 14
