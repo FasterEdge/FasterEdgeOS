@@ -1,4 +1,5 @@
 #!/bin/sh
+# FasterEdge 开源项目 - Github: https://github.com/FasterEdge - Gitee: https://gitee.com/FasterEdge
 
 # 本脚本由 GitHub 工作流调用。
 

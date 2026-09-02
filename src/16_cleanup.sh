@@ -1,4 +1,5 @@
 #!/bin/sh
+# FasterEdge 开源项目 - Github: https://github.com/FasterEdge - Gitee: https://gitee.com/FasterEdge
 
 # 此脚本适用于使用提升权限执行过 FasterEdgeOS 构建流程的情况。
 # 它会递归地把所有文件的属主恢复为原始用户。

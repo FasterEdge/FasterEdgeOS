@@ -1,4 +1,5 @@
 #!/bin/bash
+# FasterEdge 开源项目 - Github: https://github.com/FasterEdge - Gitee: https://gitee.com/FasterEdge
 
 # 为新的 overlay 软件包生成基本模板
 

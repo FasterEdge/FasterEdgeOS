@@ -1,4 +1,5 @@
 #!/bin/sh
+# FasterEdge 开源项目 - Github: https://github.com/FasterEdge - Gitee: https://gitee.com/FasterEdge
 
 # FasterEdgeOS 主构建入口。
 set -e
