@@ -1,6 +1,7 @@
 !.gitignore
 
 /src/source/**
+!/src/source/*.sha256
 /src/work/**
 /src/fasteredgeos.iso
 /src/fasteredgeos_image.tgz
