@@ -190,9 +190,10 @@ DontCrack 实例 × N（各自管理一个子进程）
 聚合状态查询（默认监听 `127.0.0.1:11884`）：
 
 ```text
-curl http://127.0.0.1:11884/healthz
-curl http://127.0.0.1:11884/status
-curl -X POST http://127.0.0.1:11884/shutdown
+# FEOS 系统基于 BusyBox(用 wget;宿主有 curl 时亦可直接用 curl)。
+wget -q -O - http://127.0.0.1:11884/healthz
+wget -q -O - http://127.0.0.1:11884/status
+wget -q -O - --post-data='' http://127.0.0.1:11884/shutdown
 ```
 
 后续将在此基础上接入：FasterEdge2Api 集群拓扑与系统管理 API、FasterEdge 节点运行时、
