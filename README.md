@@ -279,7 +279,7 @@ FasterEdge2Api 将作为系统管理入口，逐步提供：
 FasterEdgeOS/
 ├── src/                         # 系统源码与构建入口
 │   ├── .config                  # 主构建配置
-│   ├── Makefile                 # make all/clean/qemu/test
+│   ├── Makefile                 # make all/clean/qemu-bios/qemu-uefi/test
 │   ├── 00_* ~ 16_*              # 分阶段构建脚本
 │   ├── minimal_boot/             # BIOS/UEFI 启动文件
 │   ├── minimal_config/           # 内核和 BusyBox 配置
