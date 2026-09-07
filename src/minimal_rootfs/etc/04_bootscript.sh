@@ -11,6 +11,8 @@ if [ -d /etc/autorun ]; then
     if [ -f "$AUTOSCRIPT" ] && [ -x "$AUTOSCRIPT" ]; then
       echo -e "正在执行 \e[32m$AUTOSCRIPT\e[0m"
       "$AUTOSCRIPT"
+    elif [ -f "$AUTOSCRIPT" ]; then
+      echo -e "\e[33m警告: $AUTOSCRIPT 存在但不可执行, 已跳过\e[0m"
     fi
   done
 fi
