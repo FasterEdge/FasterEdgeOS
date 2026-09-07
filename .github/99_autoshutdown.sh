@@ -1,7 +1,7 @@
 #!/bin/sh
 # FasterEdge 开源项目 - Github: https://github.com/FasterEdge - Gitee: https://gitee.com/FasterEdge
 
-# 该脚本在系统启动一分钟后自动关机。
+# 该脚本在系统启动 30 秒后自动关机。
 sleep 30 && poweroff &
 
 cat << CEOF
