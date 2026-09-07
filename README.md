@@ -160,6 +160,8 @@ src/minimal_overlay/bundles/fasteredgeos/
 - **根进程管理器**：编译并安装 `DontCrack-Manager`。单体的 DontCrack 一次只能管理一个
   进程；DontCrack-Manager 同时监管多个 DontCrack 实例（各自管理一个子进程），作为
   本无进程管理器 Live 环境的系统多进程根管理器。
+- **DontCrack 单体**：编译并安装 `/usr/bin/dontcrack`（被根管理器监管的实例；
+  demo 服务依赖它，缺失时该服务永远无法启动——CI 端到端验证覆盖）。
 - **配置**：安装 `/etc/fasteredgeos/manager.yaml`（服务级 DontCrack 参数、依赖编排、
   健康探针、退避重启、优雅停机）。
 - **开机启动**：安装 `/etc/autorun/20_dontcrack-manager.sh`，开机最先启动根管理器
