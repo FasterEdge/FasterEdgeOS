@@ -60,9 +60,23 @@ download_source() (
   if [ ! "$local" = "true" ] ; then
     echo "正在从 '$url' 下载源文件。"
     echo "正在将源文件保存到 '$file'".
-    # 重试参数: 偶发网络/SSL 失败不应让整个 1 小时构建功亏一篑
-    # (Test run 实测 busybox.net SSL 握手瞬时失败即整轮失败)。
-    wget -O "$file" -c --tries=5 --timeout=30 --waitretry=5 "$url"
+    # 下载重试: 实测 GNU wget 的 --tries 对 SSL 握手失败("Unable to
+    # establish SSL connection", exit 4)视为 fatal 不重试, 因此这里用
+    # shell 循环兜底: 无论 wget 因何失败都重试, 偶发网络/SSL 故障不会
+    # 让整个 ~1 小时构建功亏一篑。
+    attempt=1
+    while [ "$attempt" -le 5 ] ; do
+      if wget -O "$file" -c --timeout=30 --waitretry=5 "$url" ; then
+        break
+      fi
+      echo "下载失败(尝试 $attempt/5), 5 秒后重试: $url"
+      sleep 5
+      attempt=$((attempt + 1))
+    done
+    [ -f "$file" ] || {
+      echo "错误: 从 '$url' 下载失败(已重试 5 次), 中止构建。" >&2
+      exit 1
+    }
 
     # 供应链完整性校验（可选但强烈建议）：
     # 在 'source' 目录放置 '<归档文件名>.sha256'（内容形如 "<hash>  <文件名>"），
