@@ -10,7 +10,9 @@ mkdir -p ../src/minimal_overlay/rootfs/etc/autorun
 cp 99_autoshutdown.sh ../src/minimal_overlay/rootfs/etc/autorun
 chmod +x ../src/minimal_overlay/rootfs/etc/autorun/99_autoshutdown.sh
 cp -f syslinux.cfg ../src/minimal_boot/bios/boot/syslinux/syslinux.cfg
-sed -i "s|OVERLAY_LOCATION.*|OVERLAY_LOCATION=rootfs|" ../src/.config
+# 注意: 必须锚定行首(^), 否则会把注释样例行(# OVERLAY_LOCATION=...)也改写,
+# 产生两个匹配行, read_property 会返回多值导致构建判断失效。
+sed -i "s|^OVERLAY_LOCATION.*|OVERLAY_LOCATION=rootfs|" ../src/.config
 # CI 构建启用 fasteredgeos bundle(系统初始工具: DontCrack-Manager 根管理器)。
 sed -i "s|^OVERLAY_BUNDLES=.*|OVERLAY_BUNDLES=dhcp,fasteredgeos|" ../src/.config
 
