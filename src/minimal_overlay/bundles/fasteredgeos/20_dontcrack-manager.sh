@@ -22,6 +22,7 @@ echo "启动 DontCrack-Manager (系统多进程根管理器)..."
 
 # setsid: 脱离当前会话, 使根管理器独立于启动脚本运行; & 后台化。
 setsid "$BIN" -config "$CFG" >> "$LOG" 2>&1 &
+mkdir -p /var/run
 echo $! > /var/run/dontcrack-manager.pid
 
 # 查询根管理器状态:
