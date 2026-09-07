@@ -7,8 +7,10 @@ set -e
 
 . ../../common.sh
 
-# 固定的 DontCrack-Manager commit: 全量 -flag=value 形式 + Setpgid 孤儿清理后的版本。
-DCM_COMMIT=${DCM_COMMIT:-0921a75c0a468447ae37a6ec0a5661a2f4f86aac}
+# 固定的 DontCrack-Manager commit: 由 CI 端到端验证的版本(随上游修复演进手动更新)。
+# 当前 853db5a: 含全部深检修复 —— 全量 -flag=value 形式 + port 1-65535 校验 +
+# auto-restart 等待窗口停止修复 + dontcrack_env 合并顺序修复(同名可覆盖继承值)。
+DCM_COMMIT=${DCM_COMMIT:-853db5a17ccc30f89c93b433eef5053d26202069}
 DEST_DIR=$OVERLAY_SOURCE_DIR/DontCrack-Manager
 REPO_URL=https://github.com/FasterEdge/DontCrack-Manager.git
 
