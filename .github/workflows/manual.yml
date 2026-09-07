@@ -31,6 +31,7 @@ jobs:
     - name: 'Step 02 - Build Kernel'
       run: |
         cd ./src
+        export NUM_JOBS=2   # CI runner 内存受限: 4 并行内核编译可能 OOM/卡死(9/7 实测)
         bash ./02_build_kernel.sh
     - name: 'Step 03 - Get GNU C Library'
       run: |
@@ -39,6 +40,7 @@ jobs:
     - name: 'Step 04 - Build GNU C Library'
       run: |
         cd ./src
+        export NUM_JOBS=2   # 同 Step 02: CI 内存受限, 限制并行度
         bash ./04_build_glibc.sh
     - name: 'Step 05 - Prepare Sysroot'
       run: |
@@ -51,6 +53,7 @@ jobs:
     - name: 'Step 07 - Build Busybox'
       run: |
         cd ./src
+        export NUM_JOBS=2   # 同 Step 02: CI 内存受限, 限制并行度
         bash ./07_build_busybox.sh
     - name: 'Step 08 - Prepare Overlay Bundles'
       run: |

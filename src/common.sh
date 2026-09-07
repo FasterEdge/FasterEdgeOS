@@ -42,8 +42,9 @@ JOB_FACTOR=`read_property JOB_FACTOR`
 CFLAGS=`read_property CFLAGS`
 NUM_CORES=$(grep ^processor /proc/cpuinfo | wc -l)
 
-# 计算稍后要使用的 'make' 任务数。
-NUM_JOBS=$((NUM_CORES * JOB_FACTOR))
+# 计算稍后要使用的 'make' 任务数。可用环境变量 NUM_JOBS 覆盖
+# (CI/内存受限环境的稳定性: 内核编译并行任务过多可能 OOM/卡死)。
+NUM_JOBS="${NUM_JOBS:-$((NUM_CORES * JOB_FACTOR))}"
 
 download_source() (
   url=$1  # 从此 URL 下载。

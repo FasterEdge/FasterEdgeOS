@@ -55,8 +55,9 @@ export JOB_FACTOR="`read_property JOB_FACTOR`"
 export CFLAGS="`read_property CFLAGS`"
 export NUM_CORES="$(grep ^processor /proc/cpuinfo | wc -l)"
 
-# 计算 make "jobs" 的数量
-export NUM_JOBS="$((NUM_CORES * JOB_FACTOR))"
+# 计算 make "jobs" 的数量。可用环境变量 NUM_JOBS 覆盖
+# (CI/内存受限环境的稳定性: 并行任务过多可能 OOM/卡死)。
+export NUM_JOBS="${NUM_JOBS:-$((NUM_CORES * JOB_FACTOR))}"
 
 # 理想情况下，我们会在此处导出带 -j 等参数的 MAKE，让程序只需运行 $(MAKE) 而无需操心需要传递的额外标志
 # export MAKE="${MAKE-make} -j $NUM_JOBS"
