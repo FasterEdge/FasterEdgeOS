@@ -87,7 +87,7 @@ extract_source() (
 
   # 删除之前已解压源码的文件夹。
   echo "正在移除 '$name' 的 overlay 工作区，这可能需要一些时间。"
-  rm -rf $OVERLAY_WORK_DIR/$name
+  rm -rf "${OVERLAY_WORK_DIR:?}/${name:?}"
   mkdir -p $OVERLAY_WORK_DIR/$name
 
   # 将源码解压到文件夹 'work/overlay/$source'。

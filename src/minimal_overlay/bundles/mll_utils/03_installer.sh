@@ -103,7 +103,12 @@ echo "安装程序依赖 Syslinux，但缺失该组件，无法继续。"
 fi;
 
 cd $WORK_DIR/syslinux
-cd $(ls -d syslinux-*)
+set -- syslinux-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: syslinux-*，无法继续。"
+  exit 1
+fi
+cd "$1"
 
 cp bios/extlinux/extlinux \
   $WORK_DIR/overlay/$BUNDLE_NAME/sbin

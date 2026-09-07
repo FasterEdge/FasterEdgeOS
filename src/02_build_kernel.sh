@@ -9,7 +9,12 @@ set -e
 echo "*** 构建内核开始 ***"
 
 # 切换到 ls 找到的内核源码目录，例如 'linux-4.4.6'。
-cd `ls -d $WORK_DIR/kernel/linux-*`
+set -- $WORK_DIR/kernel/linux-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: $WORK_DIR/kernel/linux-*，无法继续。"
+  exit 1
+fi
+cd "$1"
 
 # 清理内核源码，包括配置文件。
 echo "正在准备内核工作区。"
@@ -134,7 +139,7 @@ fi
 
 # 准备内核安装区域。
 echo "正在移除旧的内核构建产物，这可能需要一些时间。"
-rm -rf $KERNEL_INSTALLED
+rm -rf "${KERNEL_INSTALLED:?}"
 mkdir $KERNEL_INSTALLED
 
 echo "正在安装内核。"

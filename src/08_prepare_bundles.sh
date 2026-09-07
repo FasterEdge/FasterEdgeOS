@@ -9,7 +9,7 @@ set -e
 echo "*** 准备 OVERLAY 开始 ***"
 
 echo "正在准备 overlay 工作区。"
-rm -rf $WORK_DIR/overlay*
+rm -rf "${WORK_DIR:?}"/overlay*
 
 # 从 '.config' 读取 'OVERLAY_BUNDLES' 属性
 OVERLAY_BUNDLES=`read_property OVERLAY_BUNDLES`

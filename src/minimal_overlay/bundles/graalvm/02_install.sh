@@ -10,7 +10,7 @@ set -e
 . ../../common.sh
 
 cd $WORK_DIR/overlay/$BUNDLE_NAME
-mv `ls -d *` $BUNDLE_NAME
+mv * "$BUNDLE_NAME"
 
 mkdir opt
 mv graalvm opt
@@ -32,9 +32,10 @@ do
   ./../opt/$BUNDLE_NAME/bin/gu -c install org.graalvm.$LANGUAGE
 done
 
-for FILE in $(ls ../opt/$BUNDLE_NAME/bin)
+for FILE in ../opt/$BUNDLE_NAME/bin/*
 do
-  ln -s ../opt/$BUNDLE_NAME/bin/$FILE $FILE
+  [ -e "$FILE" ] || continue
+  ln -s "$FILE" "$(basename "$FILE")"
 done
 
 # 使用 '--remove-destination' 可正确覆盖

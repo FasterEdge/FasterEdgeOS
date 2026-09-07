@@ -8,7 +8,9 @@
 set -ex
 
 cd minimal_overlay
-for bundle in `ls bundles` ; do
+for bundle in bundles/* ; do
+  [ -d "$bundle" ] || continue
+  bundle=$(basename "$bundle")
   echo "******************************"
   echo "***** $bundle 测试开始 *****"
   echo "******************************"

@@ -12,7 +12,7 @@ fi
 mkdir -p "$WORK_DIR/overlay/$BUNDLE_NAME"
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 
 mkdir -p $DEST_DIR/lib
 cp $SYSROOT/lib/libnss_dns.so.2 $DEST_DIR/lib/

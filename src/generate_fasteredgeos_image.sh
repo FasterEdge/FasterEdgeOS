@@ -30,7 +30,7 @@ CEOF
 
 cleanup() {
   chmod -R ugo+rw $TEMP_DIR
-  rm -rf $TEMP_DIR
+  rm -rf "${TEMP_DIR:?}"
 }
 
 buildImage() {

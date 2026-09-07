@@ -5,11 +5,16 @@ set -e
 . ../../common.sh
 
 # 切换到 coreutils 源码目录（由 ls 找到），例如 'coreutils-8.28'。
-cd `ls -d $OVERLAY_WORK_DIR/$BUNDLE_NAME/coreutils-*`
+set -- $OVERLAY_WORK_DIR/$BUNDLE_NAME/coreutils-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: $OVERLAY_WORK_DIR/$BUNDLE_NAME/coreutils-*，无法继续。"
+  exit 1
+fi
+cd "$1"
 
 make_clean
 
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 
 echo "正在配置 '$BUNDLE_NAME'。"
 CFLAGS="$CFLAGS" ./configure \

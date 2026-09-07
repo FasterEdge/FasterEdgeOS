@@ -7,7 +7,12 @@ set -e
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
 # 切换到 dialog 源码目录（由 ls 找到），例如 'dialog-1.3-20170509'。
-cd $(ls -d dialog-*)
+set -- dialog-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: dialog-*，无法继续。"
+  exit 1
+fi
+cd "$1"
 
 if [ -f Makefile ] ; then
   echo "正在准备 'dialog' 的工作目录，这可能需要一些时间。"
@@ -16,7 +21,7 @@ else
   echo "已跳过 'dialog' 的清理阶段。"
 fi
 
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 
 echo "正在配置 'dialog'。"
 CFLAGS="$CFLAGS" ./configure \
@@ -28,7 +33,7 @@ make -j $NUM_JOBS
 echo "正在安装 'dialog'。"
 make -j $NUM_JOBS install DESTDIR=$DEST_DIR
 
-rm -rf $DEST_DIR/usr/lib $DEST_DIR/usr/share
+rm -rf "${DEST_DIR:?}/usr/lib" "${DEST_DIR:?}/usr/share"
 
 echo "正在精简 'dialog' 的体积。"
 set +e

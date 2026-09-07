@@ -11,7 +11,7 @@ BUILD_KERNEL_MODULES=`read_property BUILD_KERNEL_MODULES`
 echo "*** 生成 ROOTFS 开始 ***"
 
 echo "正在准备 rootfs 工作区，这可能需要一些时间。"
-rm -rf $ROOTFS
+rm -rf "${ROOTFS:?}"
 
 # 将 Busybox 生成的所有内容复制到 'rootfs' 文件夹。
 cp -r $BUSYBOX_INSTALLED $ROOTFS

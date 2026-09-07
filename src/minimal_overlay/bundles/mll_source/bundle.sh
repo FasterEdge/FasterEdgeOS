@@ -9,7 +9,7 @@ mkdir -p "$WORK_DIR/overlay/$BUNDLE_NAME"
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
 # 移除旧的源码。
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 
 # 创建所需的 overlay bundle 目录。
 mkdir -p $DEST_DIR/usr/src
@@ -26,8 +26,9 @@ if ls $MAIN_SRC_DIR/*.txt >/dev/null 2>&1 ; then
 fi
 
 # 将所有源码目录复制到 '/usr/src'。
-for MINIMAL_DIR in `ls -d $MAIN_SRC_DIR/minimal*/` ; do
-  cp -r $MINIMAL_DIR $DEST_DIR/usr/src
+for MINIMAL_DIR in $MAIN_SRC_DIR/minimal*/ ; do
+  [ -d "$MINIMAL_DIR" ] || continue
+  cp -r "$MINIMAL_DIR" "$DEST_DIR/usr/src"
 done
 
 # 复制辅助 'autorun' 脚本。
@@ -52,7 +53,7 @@ ARCHIVE_DIR=${ARCHIVE_PREFIX}${DATE_PARSED}
 ARCHIVE_FILE=${ARCHIVE_DIR}_src.tar.xz
 
 # 移除旧的源码归档产物。
-rm -rf $WORK_DIR/overlay/$BUNDLE_NAME/${ARCHIVE_PREFIX}*
+rm -rf "${WORK_DIR:?}/overlay/${BUNDLE_NAME:?}/${ARCHIVE_PREFIX}"*
 
 # 将所有源码复制到新的临时目录。
 cp -r $DEST_DIR/usr/src \

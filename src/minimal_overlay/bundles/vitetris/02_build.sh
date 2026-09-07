@@ -9,7 +9,7 @@ cd $WORK_DIR/overlay/$BUNDLE_NAME/vitetris-master
 echo "正在准备 '$BUNDLE_NAME' 的工作目录，这可能需要一些时间。"
 make -j $NUM_JOBS clean
 
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 
 echo "正在配置 '$BUNDLE_NAME'。"
 CFLAGS="$CFLAGS" ./configure \

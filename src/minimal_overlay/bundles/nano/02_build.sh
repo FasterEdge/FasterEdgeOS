@@ -7,7 +7,12 @@ set -e
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
 # 切换到 nano 源码目录（由 ls 找到），例如 'nano-2.8.7'。
-cd $(ls -d nano-*)
+set -- nano-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: nano-*，无法继续。"
+  exit 1
+fi
+cd "$1"
 
 if [ -f Makefile ] ; then
   echo "正在准备 '$BUNDLE_NAME' 的工作目录，这可能需要一些时间。"
@@ -16,7 +21,7 @@ else
   echo "已跳过 '$BUNDLE_NAME' 的清理阶段。"
 fi
 
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 
 echo "正在配置 '$BUNDLE_NAME'。"
 CFLAGS="$CFLAGS" ./configure \

@@ -5,7 +5,7 @@ set -e
 . ../../common.sh
 
 echo "正在清理先前的工作目录。"
-rm -rf $WORK_DIR/overlay/$BUNDLE_NAME
+rm -rf "${WORK_DIR:?}/overlay/${BUNDLE_NAME:?}"
 mkdir -p $WORK_DIR/overlay/$BUNDLE_NAME
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 

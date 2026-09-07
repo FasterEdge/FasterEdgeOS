@@ -28,7 +28,7 @@ fi
 
 # 删除先前解压出的 2048 目录。
 echo "正在清理 c2048 的工作目录，这可能需要一些时间。"
-rm -rf $WORK_DIR/overlay/$BUNDLE_NAME
+rm -rf "${WORK_DIR:?}/overlay/${BUNDLE_NAME:?}"
 mkdir $WORK_DIR/overlay/$BUNDLE_NAME
 
 cp $ARCHIVE_FILE $WORK_DIR/overlay/$BUNDLE_NAME

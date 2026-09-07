@@ -10,7 +10,7 @@ echo "*** 生成系统镜像开始 ***"
 
 # 清理旧的构建产物。
 rm -f $SRC_DIR/fasteredgeos_image.tgz
-rm -rf $WORK_DIR/fasteredgeos_image
+rm -rf "${WORK_DIR:?}"/fasteredgeos_image
 mkdir -p $WORK_DIR/fasteredgeos_image
 
 if [ -d $ROOTFS ] ; then

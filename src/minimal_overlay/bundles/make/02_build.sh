@@ -7,7 +7,12 @@ set -e
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
 # 切换到 make 源码目录（由 ls 找到），例如 'make-4.2.1'。
-cd $(ls -d make-*)
+set -- make-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: make-*，无法继续。"
+  exit 1
+fi
+cd "$1"
 
 if [ "${PWD##*/}" = "make-4.2.1" ] ; then
   # TODO - 不再需要时请移除这部分。
@@ -22,7 +27,7 @@ else
   echo "已跳过 '$BUNDLE_NAME' 的清理阶段。"
 fi
 
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 
 echo "正在配置 '$BUNDLE_NAME'。"
 CFLAGS="$CFLAGS" ./configure \

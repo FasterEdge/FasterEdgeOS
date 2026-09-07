@@ -9,7 +9,12 @@ set -e
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
 # 切换到 Lua 源码目录（由 ls 找到），例如 'lua-5.3.4'。
-cd $(ls -d lua-*)
+set -- lua-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: lua-*，无法继续。"
+  exit 1
+fi
+cd "$1"
 
 echo "正在准备 'Lua' 的工作目录，这可能需要一些时间。"
 # 我们将 lua 安装到 /usr 而非 /usr/local，因此需要修改 luaconf.h，使 lua 能查找模块等。
@@ -22,7 +27,7 @@ else
   echo "已跳过 '$BUNDLE_NAME' 的清理阶段。"
 fi
 
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 
 echo "正在编译 'Lua'。"
 make -j $NUM_JOBS posix CFLAGS="$CFLAGS"

@@ -50,7 +50,7 @@ fi
 
 # 删除先前解压出的 python 目录。
 echo "正在清理 PYTHON 的工作目录，这可能需要一些时间。"
-rm -rf $WORK_DIR/overlay/$BUNDLE_NAME
+rm -rf "${WORK_DIR:?}/overlay/${BUNDLE_NAME:?}"
 mkdir $WORK_DIR/overlay/$BUNDLE_NAME
 
 # 解压 python 到目录 'work/overlay/python'。

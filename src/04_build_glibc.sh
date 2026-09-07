@@ -10,16 +10,21 @@ echo "*** 构建 GLIBC 开始 ***"
 
 # 准备工作区，例如 'work/glibc/glibc_objects'。
 echo "正在准备 glibc 对象目录，这可能需要一些时间。"
-rm -rf $GLIBC_OBJECTS
+rm -rf "${GLIBC_OBJECTS:?}"
 mkdir $GLIBC_OBJECTS
 
 # 准备安装目录，例如 'work/glibc/glibc_installed'。
 echo "正在准备 glibc 安装目录，这可能需要一些时间。"
-rm -rf $GLIBC_INSTALLED
+rm -rf "${GLIBC_INSTALLED:?}"
 mkdir $GLIBC_INSTALLED
 
 # 找到 glibc 源码目录（例如 'glibc-2.23'）并记住它。
-GLIBC_SRC=`ls -d $WORK_DIR/glibc/glibc-*`
+set -- $WORK_DIR/glibc/glibc-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: $WORK_DIR/glibc/glibc-*，无法继续。"
+  exit 1
+fi
+GLIBC_SRC="$1"
 
 # 所有 glibc 的工作都在工作区内完成。
 cd $GLIBC_OBJECTS

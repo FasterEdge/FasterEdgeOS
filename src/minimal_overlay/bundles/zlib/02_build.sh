@@ -7,12 +7,17 @@ set -e
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
 # 切换到 zlib 源码目录（由 ls 找到），例如 'zlib-1.2.11'。
-cd $(ls -d zlib-*)
+set -- zlib-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: zlib-*，无法继续。"
+  exit 1
+fi
+cd "$1"
 
 echo "正在准备 '$BUNDLE_NAME' 的工作目录，这可能需要一些时间。"
 make -j $NUM_JOBS distclean
 
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 
 echo "正在配置 '$BUNDLE_NAME'。"
 CFLAGS="$CFLAGS" ./configure \

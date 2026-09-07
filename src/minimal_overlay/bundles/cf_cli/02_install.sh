@@ -5,7 +5,7 @@ set -e
 . ../../common.sh
 
 echo "正在移除旧的 'Cloud Foundry CLI' 构建产物，这可能需要一些时间。"
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 mkdir -p $DEST_DIR/opt/$BUNDLE_NAME
 mkdir -p $DEST_DIR/usr/bin
 

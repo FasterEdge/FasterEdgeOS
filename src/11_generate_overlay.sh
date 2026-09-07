@@ -10,7 +10,7 @@ echo "*** 生成 OVERLAY 开始 ***"
 
 # 清理旧的 ISO overlay 区域。
 echo "正在清理旧 overlay 区域，可能需要一些时间。"
-rm -rf $ISOIMAGE_OVERLAY
+rm -rf "${ISOIMAGE_OVERLAY:?}"
 
 # 创建新的 ISO overlay 区域。
 mkdir -p $ISOIMAGE_OVERLAY
@@ -76,7 +76,7 @@ if [ "$OVERLAY_LOCATION" = "iso" ] && \
   $BUSYBOX umount $ISOIMAGE_OVERLAY/sparse
   sync
   sleep 1
-  rm -rf $ISOIMAGE_OVERLAY/sparse
+  rm -rf "${ISOIMAGE_OVERLAY:?}/sparse"
 
   # 分离 loop 设备。
   $BUSYBOX losetup -d $LOOP_DEVICE

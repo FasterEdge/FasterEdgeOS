@@ -7,12 +7,17 @@ set -e
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
 # 切换到 libxcrypt 源码目录（由 ls 找到），例如 'libxcrypt-4.4.17'。
-cd $(ls -d libxcrypt-*)
+set -- libxcrypt-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: libxcrypt-*，无法继续。"
+  exit 1
+fi
+cd "$1"
 
 echo "正在生成 configure。"
 ./autogen.sh
 
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 
 echo "正在配置 '$BUNDLE_NAME'。"
 CFLAGS="$CFLAGS" ./configure \

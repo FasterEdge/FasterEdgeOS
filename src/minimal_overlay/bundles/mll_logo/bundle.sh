@@ -13,7 +13,7 @@ set -e
 # http://www.articleworld.org/index.php/How_to_change_the_Linux_penguin_boot_logo
 #
 #MLL_LOGO=/mnt/hgfs/vm_shared/tux3.ppm
-#rm -rf $WORK_DIR/logo
+#rm -rf "${WORK_DIR:?}"/logo
 #mkdir -p $WORK_DIR/logo
 #cp $MLL_LOGO $WORK_DIR/logo/mll_logo.ppm
 #ppmquant 224 $WORK_DIR/logo/mll_logo.ppm > $WORK_DIR/logo/mll_logo_224.ppm
@@ -27,21 +27,24 @@ if [ ! "$USE_BOOT_LOGO" = "true" ] ; then
   exit 0
 fi
 
-if [ ! -f $WORK_DIR/kernel/linux-*/.config ] ; then
+# 解析唯一内核源码目录 (glob 先展开再判定, 避免字面量/多匹配误判)。
+set -- $WORK_DIR/kernel/linux-*
+if [ "$#" -ne 1 ] || [ ! -f "$1/.config" ] ; then
   echo "内核配置不存在。无法继续。"
   exit 1
 fi
+KSRC_DIR="$1"
 
 if [ ! -f $WORK_DIR/kernel/kernel_installed/kernel ] ; then
   echo "内核镜像不存在。无法继续。"
   exit 1
 fi
 
-rm -f `ls -d $WORK_DIR/kernel/linux-*`/drivers/video/logo/logo_linux_clut224.ppm
-cp $SRC_DIR/mll_logo_ascii_224.ppm `ls -d $WORK_DIR/kernel/linux-*`/drivers/video/logo/logo_linux_clut224.ppm
-touch `ls -d $WORK_DIR/kernel/linux-*`/drivers/video/logo/logo_linux_clut224.ppm
+rm -f "$KSRC_DIR/drivers/video/logo/logo_linux_clut224.ppm"
+cp $SRC_DIR/mll_logo_ascii_224.ppm "$KSRC_DIR/drivers/video/logo/logo_linux_clut224.ppm"
+touch "$KSRC_DIR/drivers/video/logo/logo_linux_clut224.ppm"
 
-cd `ls -d $WORK_DIR/kernel/linux-*`
+cd "$KSRC_DIR"
 
 make bzImage -j 4
 

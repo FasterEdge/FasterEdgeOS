@@ -10,10 +10,15 @@ echo "*** 构建 BUSYBOX 开始 ***"
 
 # 移除旧的 Busybox 安装目录。
 echo "正在移除旧的 Busybox 构建产物，这可能需要一些时间。"
-rm -rf $BUSYBOX_INSTALLED
+rm -rf "${BUSYBOX_INSTALLED:?}"
 
 # 切换到 ls 找到的源码目录，例如 'busybox-1.24.2'。
-cd `ls -d $WORK_DIR/busybox/busybox-*`
+set -- $WORK_DIR/busybox/busybox-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: $WORK_DIR/busybox/busybox-*，无法继续。"
+  exit 1
+fi
+cd "$1"
 
 # 移除之前生成的构建产物。
 echo "正在准备 Busybox 工作区，这可能需要一些时间。"

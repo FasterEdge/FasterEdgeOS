@@ -5,13 +5,18 @@ set -e
 . ../../common.sh
 
 echo "正在移除旧的 'Apache Felix' 构建产物，这可能需要一些时间。"
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 mkdir -p $DEST_DIR/opt/felix
 mkdir -p $DEST_DIR/bin
 mkdir -p $DEST_DIR/etc/autorun
 
 cd $WORK_DIR/overlay/felix
-cd $(ls -d felix-*)
+set -- felix-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: felix-*，无法继续。"
+  exit 1
+fi
+cd "$1"
 
 cat << CEOF > bin/felix-start.sh
 #!/bin/sh

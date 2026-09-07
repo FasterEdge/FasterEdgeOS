@@ -9,7 +9,7 @@ set -e
 echo "*** 准备 SYSROOT 开始 ***"
 
 echo "正在清理现有的 sysroot，这可能需要一些时间。"
-rm -rf $SYSROOT
+rm -rf "${SYSROOT:?}"
 mkdir -p $SYSROOT
 
 echo "正在准备 glibc，这可能需要一些时间。"

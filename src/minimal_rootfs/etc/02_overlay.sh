@@ -142,7 +142,7 @@ for DEVICE in /dev/* ; do
       fi
     else
       umount $IMAGE_MNT
-      rm -rf $IMAGE_MNT
+      rm -rf "${IMAGE_MNT:?}"
     fi
   fi
 
@@ -173,7 +173,7 @@ for DEVICE in /dev/* ; do
   fi
 
   umount $DEVICE_MNT 2>/dev/null
-  rm -rf $DEVICE_MNT 2>/dev/null
+  rm -rf "${DEVICE_MNT:?}" 2>/dev/null
 done
 
 # 把关键文件系统移到新挂载点。

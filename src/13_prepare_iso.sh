@@ -9,7 +9,7 @@ set -e
 init() {
   # 清理旧的 ISO 生成区域。
   echo "正在清理旧的 ISO 工作目录，可能需要一些时间。"
-  rm -rf $ISOIMAGE
+  rm -rf "${ISOIMAGE:?}"
 
   echo "正在准备新的 ISO 工作目录。"
   mkdir -p $ISOIMAGE
@@ -52,7 +52,12 @@ prepare_boot_bios() {
     $ISOIMAGE
 
   # 查找 Syslinux 构建目录。
-  WORK_SYSLINUX_DIR=`ls -d $WORK_DIR/syslinux/syslinux-*`
+  set -- $WORK_DIR/syslinux/syslinux-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: $WORK_DIR/syslinux/syslinux-*，无法继续。"
+  exit 1
+fi
+WORK_SYSLINUX_DIR="$1"
 
   # 复制预编译文件 'isolinux.bin' 和 'ldlinux.c32'，它们用于传统 BIOS
   # 启动过程中的 Syslinux。
@@ -70,13 +75,20 @@ prepare_boot_uefi() {
 
   # 确定合适的 UEFI 配置。默认镜像文件名参见 UEFI 规范 2.7 第 3.5.1.1 节。
   # 注意 x86_64 的 UEFI 镜像文件名中确实包含小写字母 'x'。
+  # glob 需先展开再判定: 赋值时字面保留的 glob 会在后续 unquoted 使用中才展开,
+  # 对无匹配/多匹配场景会产生字面量路径或参数过多, 此处显式解析并校验。
   if [ "$BUSYBOX_ARCH" = "64-bit" ] ; then
     FEOS_CONF=x86_64
-    LOADER=$WORK_DIR/systemd-boot/systemd-boot*/uefi_root/EFI/BOOT/BOOTx64.EFI
+    set -- $WORK_DIR/systemd-boot/systemd-boot*/uefi_root/EFI/BOOT/BOOTx64.EFI
   else
     FEOS_CONF=x86
-    LOADER=$WORK_DIR/systemd-boot/systemd-boot*/uefi_root/EFI/BOOT/BOOTIA32.EFI
+    set -- $WORK_DIR/systemd-boot/systemd-boot*/uefi_root/EFI/BOOT/BOOTIA32.EFI
   fi
+  if [ "$#" -ne 1 ] || [ ! -f "$1" ] ; then
+    echo "UEFI 引导加载器缺失: $WORK_DIR/systemd-boot/systemd-boot*/uefi_root/EFI/BOOT/ 下未找到目标 .EFI 文件。"
+    exit 1
+  fi
+  LOADER="$1"
 
   # 计算内核字节数。
   kernel_size=`du -b $KERNEL_INSTALLED/kernel | awk '{print \$1}'`
@@ -101,7 +113,7 @@ prepare_boot_uefi() {
   mkfs.vfat $LOOP_DEVICE_HDD
 
   echo "正在准备 'uefi' 工作目录。"
-  rm -rf $WORK_DIR/uefi
+  rm -rf "${WORK_DIR:?}"/uefi
   mkdir -p $WORK_DIR/uefi
   mount $WORK_DIR/uefi.img $WORK_DIR/uefi
 
@@ -138,7 +150,7 @@ prepare_boot_uefi() {
   sleep 1
 
   # 目录现在已清空（原为 loop 设备的挂载点）。
-  rm -rf $WORK_DIR/uefi
+  rm -rf "${WORK_DIR:?}"/uefi
 
   # 确保 UEFI 启动镜像可读。
   chmod ugo+r $WORK_DIR/uefi.img

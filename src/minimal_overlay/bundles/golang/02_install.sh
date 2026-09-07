@@ -5,7 +5,7 @@ set -e
 . ../../common.sh
 
 cd $WORK_DIR/overlay/$BUNDLE_NAME
-mv `ls -d *` $BUNDLE_NAME
+mv * "$BUNDLE_NAME"
 
 mkdir opt
 mv $BUNDLE_NAME opt
@@ -17,9 +17,10 @@ ln -s ../../opt/$BUNDLE_NAME go
 mkdir $WORK_DIR/overlay/$BUNDLE_NAME/bin
 cd $WORK_DIR/overlay/$BUNDLE_NAME/bin
 
-for FILE in $(ls ../usr/local/go/bin)
+for FILE in ../usr/local/go/bin/*
 do
-  ln -s ../usr/local/go/bin/$FILE $FILE
+  [ -e "$FILE" ] || continue
+  ln -s "$FILE" "$(basename "$FILE")"
 done
 
 # 使用 '--remove-destination' 可正确覆盖

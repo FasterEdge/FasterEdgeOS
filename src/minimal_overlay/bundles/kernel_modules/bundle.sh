@@ -5,23 +5,25 @@ set -e
 . ../../common.sh
 
 
-if [ ! -d $WORK_DIR/kernel/linux-* ] ; then
+# 解析唯一内核源码目录 (glob 需先展开再判定, 避免 [ -d glob ] 对多匹配/字面量误判)。
+set -- $WORK_DIR/kernel/linux-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
   echo "内核源码目录缺失，无法继续。"
   exit 1
-else
-  echo "内核源码目录存在。"
 fi
+KSRC_DIR="$1"
+echo "内核源码目录存在。"
 
-if [ ! -d $KERNEL_INSTALLED ] ; then
+if [ ! -d "${KERNEL_INSTALLED:?}" ] ; then
   echo "内核尚未构建，无法继续。"
   exit 1
 else
   echo "内核已构建。"
 fi
 
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 
-cd $WORK_DIR/kernel/linux-*
+cd "$KSRC_DIR"
 
 echo "正在编译内核模块。"
 make_target modules

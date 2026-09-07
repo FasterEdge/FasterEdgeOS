@@ -7,7 +7,12 @@ set -e
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
 # 切换到 Links 源码目录（由 ls 找到），例如 'links-2.12'。
-cd $(ls -d links-*)
+set -- links-*
+if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
+  echo "目录缺失: links-*，无法继续。"
+  exit 1
+fi
+cd "$1"
 
 if [ -f Makefile ] ; then
   echo "正在准备 'Links' 的工作目录，这可能需要一些时间。"
@@ -16,7 +21,7 @@ else
   echo "已跳过 'Links' 的清理阶段。"
 fi
 
-rm -rf $DEST_DIR
+rm -rf "${DEST_DIR:?}"
 
 echo "正在配置 'Links'。"
 CFLAGS="$CFLAGS" ./configure \
