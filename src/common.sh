@@ -60,7 +60,9 @@ download_source() (
   if [ ! "$local" = "true" ] ; then
     echo "正在从 '$url' 下载源文件。"
     echo "正在将源文件保存到 '$file'".
-    wget -O "$file" -c "$url"
+    # 重试参数: 偶发网络/SSL 失败不应让整个 1 小时构建功亏一篑
+    # (Test run 实测 busybox.net SSL 握手瞬时失败即整轮失败)。
+    wget -O "$file" -c --tries=5 --timeout=30 --waitretry=5 "$url"
 
     # 供应链完整性校验（可选但强烈建议）：
     # 在 'source' 目录放置 '<归档文件名>.sha256'（内容形如 "<hash>  <文件名>"），
