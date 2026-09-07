@@ -16,7 +16,7 @@ The current repository retains the ability to build system images from source. T
 - **System observability**: health checks, logs and resource status.
 - **Remote updates**: signed verification and rollback support.
 
-> The current version is in the base-system adaptation stage. Linux Live ISO and BIOS/UEFI build foundations are present. The checked-in boot and QEMU scripts currently target x86/x86_64; the FasterEdge service bundle described below is a deployment plan and is not yet present under `src/minimal_overlay/bundles/`.
+> The current version is in the base-system adaptation stage. Linux Live ISO and BIOS/UEFI build foundations are present. The checked-in boot and QEMU scripts currently target x86/x86_64; the system initial tool (DontCrack-Manager multi-process root manager) is now integrated via the `fasteredgeos` overlay bundle (see section 5).
 
 ### 2. System Architecture
 
@@ -154,42 +154,61 @@ cd src
 sudo ./write_to_media.sh /dev/sdX
 ```
 
-### 5. Planned FasterEdge Service Deployment
+### 5. System Initial Tools & FasterEdge Service Deployment
 
-FasterEdgeOS uses overlay bundles to add software to the final rootfs. The Chinese project plan reserves the following bundle path for FasterEdge components:
+FasterEdgeOS uses overlay bundles to add software to the final rootfs. FasterEdge components live under:
 
 ```text
 src/minimal_overlay/bundles/fasteredgeos/
 ```
 
-The planned bundle is intended to:
+This bundle (the system initial tool) is now implemented:
 
-- **FasterEdge2Api**: build or install `fasteredge2api`.
-- **Runtime**: install the FasterEdge runtime and configuration.
-- **Supervisor**: install `fasteredge-supervisor`.
-- **Startup**: create `/etc/init.d/` service scripts.
-- **Directories**: initialize `/etc/fasteredgeos/`, `/var/lib/fasteredgeos/` and log directories.
-- **Automatic start**: start base services during system boot.
+- **Root process manager**: builds and installs `DontCrack-Manager`. A single DontCrack
+  instance supervises exactly one child process; DontCrack-Manager supervises **multiple**
+  DontCrack instances at once — a system-level multi-process root manager for this
+  process-manager-free Live environment.
+- **Config**: installs `/etc/fasteredgeos/manager.yaml` (per-service DontCrack flags,
+  dependency ordering, probes, backoff restarts, graceful shutdown).
+- **Startup**: installs `/etc/autorun/20_dontcrack-manager.sh`, which launches the root
+  manager first during boot (setsid + background, log at `/var/log/fasteredgeos/manager.log`).
+- **Demo child**: installs `/usr/bin/fasteredgeos-demo` (supervised by the demo service).
+- **Directories**: initializes `/var/lib/fasteredgeos/` and `/var/log/fasteredgeos/`.
 
-Once that bundle is implemented and enabled, the planned configuration is:
+Enable it with:
 
 ```text
 OVERLAY_BUNDLES=dhcp,fasteredgeos
 ```
 
-The intended service model is compatible with BusyBox init and does not depend on systemd:
+The service model is compatible with BusyBox init and does not depend on systemd:
 
 ```text
 BusyBox init
     ↓
-/etc/inittab
+/etc/inittab → /etc/04_bootscript.sh
     ↓
-/etc/init.d/fasteredge-supervisor
+/etc/autorun/20_dontcrack-manager.sh
     ↓
-fasteredge2api + FasterEdge node services
+DontCrack-Manager (root manager, /etc/fasteredgeos/manager.yaml)
+    ↓
+DontCrack instance × N (each supervising one child process)
 ```
 
-> This section describes planned integration. The current source tree does not contain `src/minimal_overlay/bundles/fasteredgeos/`, and the default `OVERLAY_BUNDLES` value does not enable it.
+Aggregated status (default listen `127.0.0.1:11884`):
+
+```text
+curl http://127.0.0.1:11884/healthz
+curl http://127.0.0.1:11884/status
+curl -X POST http://127.0.0.1:11884/shutdown
+```
+
+FasterEdge2Api (cluster topology / system-management API), the FasterEdge node runtime,
+and signed, rollback-capable remote updates are planned on top of this manager; remote
+updates must still follow "download → verify → install → health check → switch or rollback".
+
+> CI builds (`manual.yml`) enable `OVERLAY_BUNDLES=dhcp,fasteredgeos` and provide a Go
+> toolchain via `actions/setup-go`; local builds need Go 1.25+ installed.
 
 ### 6. Planned System Management and Remote Updates
 

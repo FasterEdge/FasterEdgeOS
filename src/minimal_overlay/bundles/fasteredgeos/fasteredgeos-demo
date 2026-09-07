@@ -1,0 +1,8 @@
+#!/bin/sh
+# FasterEdge 开源项目 - Github: https://github.com/FasterEdge - Gitee: https://gitee.com/FasterEdge
+
+# FasterEdgeOS 演示子进程: 常驻并向状态文件写心跳(供根管理器监管演示)。
+while : ; do
+  date +%s >> /var/lib/fasteredgeos/demo.stamp 2>/dev/null || true
+  sleep 30
+done

@@ -8,15 +8,15 @@
 
 FasterEdgeOS 是一个面向边缘节点和集群设备的轻量 Linux 发行版。系统基于 Linux 内核、GNU C Library 和 BusyBox 构建，通过 overlay 机制集成 FasterEdge 运行环境及系统服务。
 
-当前仓库保留了从源码构建系统镜像的能力，后续将逐步集成：
+当前仓库保留了从源码构建系统镜像的能力，已实现的系统初始工具与后续规划：
 
-- FasterEdge 节点运行时
-- FasterEdge2Api 集群拓扑与系统管理 API
-- FasterEdgeOS 进程监管与服务管理
-- 系统健康检查、日志和资源状态
-- 带签名校验与回滚能力的远程更新
+- ✅ DontCrack-Manager 进程监管（系统初始工具，监管多个 DontCrack 实例，见第五节）
+- FasterEdge 节点运行时（规划中）
+- FasterEdge2Api 集群拓扑与系统管理 API（规划中）
+- 系统健康检查、日志和资源状态（规划中）
+- 带签名校验与回滚能力的远程更新（规划中）
 
-> 当前版本处于基础系统改造阶段。已经具备 Linux Live ISO、BIOS/UEFI 和 x86/AArch64 构建基础；FasterEdge 服务的自动部署正在通过 overlay bundle 接入。
+> 当前版本处于基础系统改造阶段。已经具备 Linux Live ISO、BIOS/UEFI 和 x86/AArch64 构建基础；系统初始工具（DontCrack-Manager 多进程根管理器）已通过 overlay bundle 接入。
 
 ## 二、系统组成
 
@@ -147,7 +147,7 @@ cd src
 sudo ./write_to_media.sh /dev/sdX
 ```
 
-## 五、FasterEdge 服务自动部署计划
+## 五、系统初始工具与 FasterEdge 服务部署
 
 FasterEdgeOS 使用 overlay bundle 把额外的软件打进最终 rootfs。FasterEdge 相关组件放在：
 
@@ -155,16 +155,19 @@ FasterEdgeOS 使用 overlay bundle 把额外的软件打进最终 rootfs。Faste
 src/minimal_overlay/bundles/fasteredgeos/
 ```
 
-该 bundle 负责：
+该 bundle（系统初始工具）当前已实现：
 
-- 编译或安装 `fasteredge2api`
-- 安装 FasterEdge 运行时和配置
-- 安装 `fasteredge-supervisor`
-- 创建 `/etc/init.d/` 服务脚本
-- 初始化 `/etc/fasteredgeos/`、`/var/lib/fasteredgeos/` 和日志目录
-- 在系统启动时自动启动基础服务
+- **根进程管理器**：编译并安装 `DontCrack-Manager`。单体的 DontCrack 一次只能管理一个
+  进程；DontCrack-Manager 同时监管多个 DontCrack 实例（各自管理一个子进程），作为
+  本无进程管理器 Live 环境的系统多进程根管理器。
+- **配置**：安装 `/etc/fasteredgeos/manager.yaml`（服务级 DontCrack 参数、依赖编排、
+  健康探针、退避重启、优雅停机）。
+- **开机启动**：安装 `/etc/autorun/20_dontcrack-manager.sh`，开机最先启动根管理器
+  （setsid 后台运行，日志 `/var/log/fasteredgeos/manager.log`）。
+- **演示子进程**：安装 `/usr/bin/fasteredgeos-demo`（由 demo 服务监管）。
+- **目录初始化**：`/var/lib/fasteredgeos/` 与 `/var/log/fasteredgeos/`。
 
-配置启用后，普通构建命令会自动把 FasterEdgeOS 服务打入镜像：
+配置启用后，普通构建命令会自动把系统初始工具打入镜像：
 
 ```text
 OVERLAY_BUNDLES=dhcp,fasteredgeos
@@ -175,12 +178,29 @@ OVERLAY_BUNDLES=dhcp,fasteredgeos
 ```text
 BusyBox init
     ↓
-/etc/inittab
+/etc/inittab → /etc/04_bootscript.sh
     ↓
-/etc/init.d/fasteredge-supervisor
+/etc/autorun/20_dontcrack-manager.sh
     ↓
-fasteredge2api + FasterEdge 节点服务
+DontCrack-Manager（根管理器，/etc/fasteredgeos/manager.yaml）
+    ↓
+DontCrack 实例 × N（各自管理一个子进程）
 ```
+
+聚合状态查询（默认监听 `127.0.0.1:11884`）：
+
+```text
+curl http://127.0.0.1:11884/healthz
+curl http://127.0.0.1:11884/status
+curl -X POST http://127.0.0.1:11884/shutdown
+```
+
+后续将在此基础上接入：FasterEdge2Api 集群拓扑与系统管理 API、FasterEdge 节点运行时、
+带签名校验与回滚能力的远程更新（远程更新仍按“下载 → 校验 → 安装 → 健康检查 →
+切换或回滚”流程，禁止覆盖当前运行版本）。
+
+> CI 构建（`manual.yml`）已启用 `OVERLAY_BUNDLES=dhcp,fasteredgeos` 并通过
+> `actions/setup-go` 提供 Go 工具链；本地构建需自行安装 Go 1.25+。
 
 ## 六、系统管理与远程更新
 
