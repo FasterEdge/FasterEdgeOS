@@ -1,0 +1,29 @@
+name: 'Shell 语法与构建检查'
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  syntax:
+    name: 'sh -n + shellcheck'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: 'sh -n 全部脚本'
+      run: |
+        set -e
+        SCRIPTS=$(find .github src -name '*.sh' -type f | grep -v '/work/' | grep -v '/source/' || true)
+        [ -n "$SCRIPTS" ] || { echo "no scripts found"; exit 0; }
+        for f in $SCRIPTS; do sh -n "$f"; done
+        echo "checked $(echo "$SCRIPTS" | wc -l) scripts (syntax OK)"
+    - name: 'shellcheck(风格项不阻塞)'
+      run: |
+        if command -v shellcheck >/dev/null 2>&1; then
+          SCRIPTS=$(find .github src -name '*.sh' -type f | grep -v '/work/' | grep -v '/source/' || true)
+          shellcheck -s sh $SCRIPTS || true
+          echo "shellcheck done (style-only warnings tolerated)"
+        else
+          echo "shellcheck not installed, skipped"
+        fi
