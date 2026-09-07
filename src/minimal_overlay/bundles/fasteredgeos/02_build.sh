@@ -25,3 +25,17 @@ cd $SRC_DIR
 
 [ -x "$OUT_DIR/dontcrack-manager" ] || { echo "错误: 编译产物缺失"; exit 1; }
 echo "DontCrack-Manager 编译完成: $OUT_DIR/dontcrack-manager"
+
+# 编译 DontCrack 单体(被 DCM 监管的实例): DCM 在 $PATH 中按 'dontcrack' 查找。
+SINGLE_SRC=$OVERLAY_SOURCE_DIR/DontCrack4ManyLinux
+[ -d "$SINGLE_SRC" ] || { echo "错误: 缺少 DontCrack4ManyLinux 源码(先执行 01_get.sh)"; exit 1; }
+
+echo "正在编译 DontCrack 单体 (CGO_ENABLED=0)..."
+cd "$SINGLE_SRC"
+CGO_ENABLED=0 GOPROXY=${GOPROXY:-https://goproxy.cn,direct} \
+  go build -trimpath -ldflags="-s -w" \
+  -o "$OUT_DIR/dontcrack" .
+cd $SRC_DIR
+
+[ -x "$OUT_DIR/dontcrack" ] || { echo "错误: dontcrack 编译产物缺失"; exit 1; }
+echo "DontCrack 单体编译完成: $OUT_DIR/dontcrack"

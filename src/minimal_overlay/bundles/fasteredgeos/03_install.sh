@@ -23,6 +23,7 @@ mkdir -p $OVERLAY_ROOTFS/var/log/fasteredgeos
 mkdir -p $OVERLAY_ROOTFS/var/run
 
 install -m755 "$BIN" $OVERLAY_ROOTFS/usr/bin/dontcrack-manager
+install -m755 "$OVERLAY_WORK_DIR/$BUNDLE_NAME/dontcrack" $OVERLAY_ROOTFS/usr/bin/dontcrack
 install -m644 "$SRC_DIR/manager.yaml" $OVERLAY_ROOTFS/etc/fasteredgeos/manager.yaml
 install -m755 "$SRC_DIR/20_dontcrack-manager.sh" $OVERLAY_ROOTFS/etc/autorun/20_dontcrack-manager.sh
 install -m755 "$SRC_DIR/fasteredgeos-demo" $OVERLAY_ROOTFS/usr/bin/fasteredgeos-demo
