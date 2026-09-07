@@ -51,7 +51,7 @@ download_source() (
 
   local=`read_property USE_LOCAL_SOURCE`
 
-  if [ "$local" = "true" -a ! -f $file  ] ; then
+  if [ "$local" = "true" -a ! -f "$file" ] ; then
     echo "源文件 '$file' 不存在，将进行下载。"
     local=false
   fi
@@ -59,7 +59,23 @@ download_source() (
   if [ ! "$local" = "true" ] ; then
     echo "正在从 '$url' 下载源文件。"
     echo "正在将源文件保存到 '$file'".
-    wget -O $file -c $url
+    wget -O "$file" -c "$url"
+
+    # 供应链完整性校验（可选但强烈建议）：
+    # 在 'source' 目录放置 '<归档文件名>.sha256'（内容形如 "<hash>  <文件名>"），
+    # 则下载后强制校验；校验失败立即中止构建（fail-closed）。
+    # 若未提供 sidecar，则打印警告并继续（fail-open，兼容旧流程）。
+    checksum_file="${file}.sha256"
+    if [ -f "$checksum_file" ] ; then
+      echo "正在校验 '$file' 的 SHA-256 校验和（$checksum_file）..."
+      ( cd "$SOURCE_DIR" && sha256sum -c "$(basename "$checksum_file")" ) || {
+        echo "错误: '$file' 校验和不匹配，可能存在篡改或下载不完整，已中止构建。" >&2
+        exit 1
+      }
+    else
+      echo "警告: 未找到 '$checksum_file'，跳过校验和验证。"
+      echo "      建议为固定版本源码提供 sidecar 校验和，防止供应链篡改。"
+    fi
   else
     echo "正在使用本地源文件 '$file'。"
   fi
@@ -71,9 +87,10 @@ extract_source() (
 
   # 删除之前已解压源码的文件夹。
   echo "正在移除 '$name' 工作区，这可能需要一些时间。"
-  rm -rf $WORK_DIR/$name
-  mkdir $WORK_DIR/$name
+  rm -rf "$WORK_DIR/$name"
+  mkdir -p "$WORK_DIR/$name"
 
   # 将源码解压到文件夹 'work/$source'。
-  tar -xvf $file -C $WORK_DIR/$name
+  # --no-same-owner: 防止归档内的 uid/gid 覆盖构建用户身份（root 解压时的标准加固）。
+  tar --no-same-owner -xf "$file" -C "$WORK_DIR/$name"
 )
