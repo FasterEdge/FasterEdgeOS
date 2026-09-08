@@ -27,7 +27,7 @@ echo "正在配置 'Dropbear'。"
 ./configure \
   --prefix=/usr \
   --disable-zlib \
-  --disable-loginfunc
+  --disable-loginfunc \
   CFLAGS="$CFLAGS"
 
 echo "正在编译 'Dropbear'。"

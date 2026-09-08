@@ -6,33 +6,11 @@ set -e
 
 # 读取公共配置属性。
 DOWNLOAD_URL=`read_property GCC_SOURCE_URL`
-USE_LOCAL_SOURCE=`read_property USE_LOCAL_SOURCE`
-
 # 取最后一个 '/' 之后的所有字符。
 ARCHIVE_FILE=${DOWNLOAD_URL##*/}
 
-if [ "$USE_LOCAL_SOURCE" = "true" -a ! -f $MAIN_SRC_DIR/source/overlay/$ARCHIVE_FILE  ] ; then
-  echo "源码包 $MAIN_SRC_DIR/source/overlay/$ARCHIVE_FILE 缺失，将进行下载。"
-  USE_LOCAL_SOURCE="false"
-fi
+download_source $DOWNLOAD_URL $OVERLAY_SOURCE_DIR/$ARCHIVE_FILE
 
-cd $MAIN_SRC_DIR/source/overlay
-
-if [ ! "$USE_LOCAL_SOURCE" = "true" ] ; then
-  # 正在下载 gcc 源码包文件。'-c' 选项允许断点续传下载。
-  echo "正在从 $DOWNLOAD_URL 下载 gcc 源码包"
-  wget -c $DOWNLOAD_URL
-else
-  echo "使用本地 gcc 源码包 $MAIN_SRC_DIR/source/overlay/$ARCHIVE_FILE"
-fi
-
-# 删除先前解压出的 gcc 目录。
-echo "正在清理 gcc 的工作目录，这可能需要一些时间。"
-rm -rf "${WORK_DIR:?}/overlay/${BUNDLE_NAME:?}"
-mkdir $WORK_DIR/overlay/$BUNDLE_NAME
-
-# 解压 gcc 到目录 'work/overlay/gcc'。
-# 完整路径形如 'work/overlay/gcc/gcc-11.1.0'。
-tar -xvf $ARCHIVE_FILE -C $WORK_DIR/overlay/$BUNDLE_NAME
+extract_source $OVERLAY_SOURCE_DIR/$ARCHIVE_FILE $BUNDLE_NAME
 
 cd $SRC_DIR
