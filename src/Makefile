@@ -22,14 +22,14 @@ clean:
 		USE_PREDEFINED_KERNEL_CONFIG=`grep -i ^USE_PREDEFINED_KERNEL_CONFIG= .config | cut -f2- -d'=' | xargs` ; \
 		if [ ! "$$USE_PREDEFINED_KERNEL_CONFIG" = "true" ] ; then \
 			echo "正在移除预定义的 Linux 内核配置文件。" ; \
-			rm -rf minimal_overlay/kernel.config ; \
+			rm -rf minimal_config/kernel.config ; \
 		else \
 			echo "保留本地 Linux 内核配置文件。" ; \
 		fi ; \
 		USE_PREDEFINED_BUSYBOX_CONFIG=`grep -i ^USE_PREDEFINED_BUSYBOX_CONFIG= .config | cut -f2- -d'=' | xargs` ; \
 		if [ ! "$$USE_PREDEFINED_BUSYBOX_CONFIG" = "true" ] ; then \
 			echo "正在移除预定义的 Busybox 配置文件。" ; \
-			rm -rf minimal_overlay/busybox.config ; \
+			rm -rf minimal_config/busybox.config ; \
 		else \
 			echo "保留本地 Busybox 配置文件。" ; \
 		fi ; \
