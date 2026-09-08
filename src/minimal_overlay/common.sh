@@ -68,7 +68,7 @@ download_source() (
 
   local=`read_property USE_LOCAL_SOURCE`
 
-  if [ "$local" = "true" -a ! -f $file  ] ; then
+  if [ "$local" = "true" -a ! -f "$file"  ] ; then
     echo "源文件 '$file' 不存在，将进行下载。"
     local=false
   fi
@@ -76,7 +76,41 @@ download_source() (
   if [ ! "$local" = "true" ] ; then
     echo "正在从 '$url' 下载 overlay 源文件。"
     echo "正在将 overlay 源文件保存到 '$file'".
-    wget -O $file -c $url
+    # 下载重试: 实测 GNU wget 的 --tries 对 SSL 握手失败("Unable to
+    # establish SSL connection", exit 4)视为 fatal 不重试, 因此这里用
+    # shell 循环兜底: 无论 wget 因何失败都重试, 偶发网络/SSL 故障不会
+    # 让整个 ~1 小时构建功亏一篑。与主链 src/common.sh 的 download_source
+    # 保持同一加固(重试 + sidecar 校验), 覆盖 adopt_openjdk/coreutils 等
+    # bundle 级源码下载(此前仅主链 01/03/06 有此防护)。
+    attempt=1
+    while [ "$attempt" -le 5 ] ; do
+      if wget -O "$file" -c --timeout=30 --waitretry=5 "$url" ; then
+        break
+      fi
+      echo "下载失败(尝试 $attempt/5), 5 秒后重试: $url"
+      sleep 5
+      attempt=$((attempt + 1))
+    done
+    [ -f "$file" ] || {
+      echo "错误: 从 '$url' 下载失败(已重试 5 次), 中止构建。" >&2
+      exit 1
+    }
+
+    # 供应链完整性校验（可选但强烈建议）：
+    # 在 'source/overlay' 目录放置 '<归档文件名>.sha256'（内容形如 "<hash>  <文件名>"），
+    # 则下载后强制校验；校验失败立即中止构建（fail-closed）。
+    # 若未提供 sidecar，则打印警告并继续（fail-open，兼容旧流程）。
+    checksum_file="${file}.sha256"
+    if [ -f "$checksum_file" ] ; then
+      echo "正在校验 '$file' 的 SHA-256 校验和（$checksum_file）..."
+      ( cd "$OVERLAY_SOURCE_DIR" && sha256sum -c "$(basename "$checksum_file")" ) || {
+        echo "错误: '$file' 校验和不匹配，可能存在篡改或下载不完整，已中止构建。" >&2
+        exit 1
+      }
+    else
+      echo "警告: 未找到 '$checksum_file'，跳过校验和验证。"
+      echo "      建议为固定版本源码提供 sidecar 校验和，防止供应链篡改。"
+    fi
   else
     echo "正在使用本地 overlay 源文件 '$file'。"
   fi
@@ -92,7 +126,9 @@ extract_source() (
   mkdir -p $OVERLAY_WORK_DIR/$name
 
   # 将源码解压到文件夹 'work/overlay/$source'。
-  tar -xvf $file -C $OVERLAY_WORK_DIR/$name
+  # --no-same-owner: 防止归档内的 uid/gid 覆盖构建用户身份（root 解压时的标准加固，
+  # 与主链 src/common.sh 的 extract_source 一致）。
+  tar --no-same-owner -xvf $file -C $OVERLAY_WORK_DIR/$name
 )
 
 make_target() (
