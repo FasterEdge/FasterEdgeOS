@@ -2,6 +2,8 @@
 
 /src/source/**
 !/src/source/*.sha256
+!/src/source/overlay/
+!/src/source/overlay/*.sha256
 /src/work/**
 /src/fasteredgeos.iso
 /src/fasteredgeos_image.tgz
