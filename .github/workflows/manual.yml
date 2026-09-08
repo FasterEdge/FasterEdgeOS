@@ -75,7 +75,7 @@ jobs:
       run: |
         cd ./src
         bash ./12_get_syslinux.sh
-    - name: 'Step 12 - Get Systemd-boot'
+    - name: 'Step 12b - Get Systemd-boot'
       run: |
         cd ./src
         bash ./12_get_systemd-boot.sh
