@@ -52,7 +52,9 @@ fi
 # demo 服务由 DCM 在 $PATH 中查找 'dontcrack' 并拉起; 镜像必须提供该单体。
 # (CI 实测缺单体时 demo 永远启动失败, healthz 恒 503, Test Docker 必然失败;
 #  本地 WSL 完整链验证: 补上单体后 healthz=ok)
-DC4M_COMMIT=${DC4M_COMMIT:-990ba43007ab24c03d2f1249caf9c13ba4ddc3dc}
+# 当前 dcdd894: 990ba43(日志预算截断)之上补 webui 前端密码 Bearer 迁移(query 弃用,
+#  避免密码进 URL/历史; DC4M CI run#25 success 实证; 70511da trimpath 对齐亦已含)。
+DC4M_COMMIT=${DC4M_COMMIT:-dcdd894d78d3d3fd1dd782bce78a297d01cf3f3c}
 SINGLE_SRC=$OVERLAY_SOURCE_DIR/DontCrack4ManyLinux
 SINGLE_REPO=https://github.com/FasterEdge/DontCrack4ManyLinux.git
 
