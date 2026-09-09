@@ -36,11 +36,12 @@ jobs:
       with:
         go-version: '1.25'
         cache-dependency-path: src/minimal_overlay/bundles/any2utf8/src/go.sum
-    - name: 'go build + vet'
+    - name: 'go build + vet + test'
       working-directory: src/minimal_overlay/bundles/any2utf8/src
       run: |
         set -e
         CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /tmp/any2utf8 .
         test -x /tmp/any2utf8
         CGO_ENABLED=0 go vet ./...
-        echo "any2utf8 build+vet OK"
+        CGO_ENABLED=0 go test ./...
+        echo "any2utf8 build+vet+test OK"
