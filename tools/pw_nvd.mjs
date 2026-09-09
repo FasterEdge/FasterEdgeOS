@@ -3,10 +3,19 @@
  * 用法: node pw_nvd.mjs <cpeName> [maxResults]
  * 示例: node pw_nvd.mjs "cpe:2.3:a:busybox:busybox:1.34.1" 30
  * 输出: CVE id | 严重度 | 摘要(前160字符)
+ * 环境变量: 同 pw_tool.mjs —— PW_MODULE / PW_EXE(必填)
  */
-import { chromium } from '/Users/tyza66/.hermes/node/lib/node_modules/@playwright/cli/node_modules/playwright/index.mjs';
+import { createRequire } from 'node:module';
 
-const EXE = '/Users/tyza66/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing';
+const require = createRequire(import.meta.url);
+const PW_MODULE = process.env.PW_MODULE;
+const chromium = await import(PW_MODULE || require.resolve('playwright')).then(m => m.chromium);
+
+const EXE = process.env.PW_EXE;
+if (!EXE) {
+  console.error('缺少环境变量 PW_EXE: 请设置浏览器可执行文件路径');
+  process.exit(2);
+}
 
 const cpe = process.argv[2];
 const max = parseInt(process.argv[3] || '30', 10);

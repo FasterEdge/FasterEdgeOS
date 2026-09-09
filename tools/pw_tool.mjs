@@ -4,10 +4,21 @@
  *   node pw_tool.mjs search "<查询词>"            — 英文 Bing 搜索
  *   node pw_tool.mjs fetch "<URL>" [maxChars]     — 抓取页面正文纯文本
  * 输出: 纯文本结果到 stdout。
+ * 环境变量:
+ *   PW_MODULE  Playwright 模块的绝对路径(默认按 npm 全局/本地解析)
+ *   PW_EXE     Chromium/Chrome for Testing 可执行文件路径(必填, 未设置则报错)
  */
-import { chromium } from '/Users/tyza66/.hermes/node/lib/node_modules/@playwright/cli/node_modules/playwright/index.mjs';
+import { createRequire } from 'node:module';
 
-const EXE = '/Users/tyza66/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing';
+const require = createRequire(import.meta.url);
+const PW_MODULE = process.env.PW_MODULE;
+const chromium = await import(PW_MODULE || require.resolve('playwright')).then(m => m.chromium);
+
+const EXE = process.env.PW_EXE;
+if (!EXE) {
+  console.error('缺少环境变量 PW_EXE: 请设置浏览器可执行文件路径(如 PW_EXE=/usr/bin/chromium 或 playwright 缓存路径)');
+  process.exit(2);
+}
 
 async function withPage(fn) {
   const browser = await chromium.launch({ headless: true, executablePath: EXE });
