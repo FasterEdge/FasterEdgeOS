@@ -40,6 +40,7 @@ jobs:
       working-directory: src/minimal_overlay/bundles/any2utf8/src
       run: |
         set -e
+        export GOFLAGS=-mod=mod
         CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /tmp/any2utf8 .
         test -x /tmp/any2utf8
         CGO_ENABLED=0 go vet ./...
