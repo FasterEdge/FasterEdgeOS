@@ -8,10 +8,10 @@ set -e
 . ../../common.sh
 
 # 固定的 DontCrack-Manager commit: 由 CI 端到端验证的版本(随上游修复演进手动更新)。
-# 当前 c9b7928: 含全部深检修复 —— 全量 -flag=value 形式 + port 1-65535 校验 +
-# auto-restart 等待窗口停止修复 + dontcrack_env 合并顺序修复 + isReady 健康判定
-# (有探针须等真实快照, 无探针才宽容) + refreshHeartbeat 失败保留旧快照(防闪烁)。
-DCM_COMMIT=${DCM_COMMIT:-c9b792813cbc9b04604d3fc137b3a6750dd15cad}
+# 当前 e137ed2: 在 c9b7928 全部深检修复基础上, 补 log_path 默认值双仓契约
+# (applyDefaults + buildArgs logPathVal 回落 ./logs/proc_manager/, 与 DontCrack
+#  -log-path 默认一致, 避免空值覆盖致 file_log 落盘位置偏离; CI run success)。
+DCM_COMMIT=${DCM_COMMIT:-e137ed29a5fc0f96d77b907915474a085bbcd4ec}
 DEST_DIR=$OVERLAY_SOURCE_DIR/DontCrack-Manager
 REPO_URL=https://github.com/FasterEdge/DontCrack-Manager.git
 
