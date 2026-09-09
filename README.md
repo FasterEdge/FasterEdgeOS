@@ -11,12 +11,13 @@ FasterEdgeOS 是一个面向边缘节点和集群设备的轻量 Linux 发行版
 当前仓库保留了从源码构建系统镜像的能力，已实现的系统初始工具与后续规划：
 
 - ✅ DontCrack-Manager 进程监管（系统初始工具，监管多个 DontCrack 实例，见第五节）
+- ✅ Any2UTF8 文本/文件转 UTF-8 工具（内置常见编码集，免系统 iconv，自动探测编码）
 - FasterEdge 节点运行时（规划中）
 - FasterEdge2Api 集群拓扑与系统管理 API（规划中）
 - 系统健康检查、日志和资源状态（规划中）
 - 带签名校验与回滚能力的远程更新（规划中）
 
-> 当前版本处于基础系统改造阶段。已经具备 Linux Live ISO、BIOS/UEFI 和 x86/AArch64 构建基础；系统初始工具（DontCrack-Manager 多进程根管理器）已通过 overlay bundle 接入。
+> 当前版本处于基础系统改造阶段。已经具备 Linux Live ISO、BIOS/UEFI 和 x86/AArch64 构建基础；系统初始工具（DontCrack-Manager 多进程根管理器、Any2UTF8 转换工具）已通过 overlay bundle 接入。
 
 ## 二、系统组成
 
