@@ -413,6 +413,10 @@ func main() {
 		fmt.Fprintln(os.Stderr, progName+": -inplace 需要至少一个文件参数")
 		os.Exit(2)
 	}
+	if *outFlag != "" && fs.NArg() > 1 {
+		fmt.Fprintln(os.Stderr, progName+": 多文件时不能使用 -output(请用重定向或 -inplace)")
+		os.Exit(2)
+	}
 
 	files := fs.Args()
 	if len(files) == 0 {
@@ -424,9 +428,13 @@ func main() {
 		var data []byte
 		var err error
 		if path == "-" {
-			data, err = io.ReadAll(io.LimitReader(os.Stdin, 1<<30)) // 1GiB 上限
+			data, err = io.ReadAll(io.LimitReader(os.Stdin, 1<<30+1)) // 1GiB+1 上限, 超限可检出
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "%s: 读取标准输入失败: %v\n", progName, err)
+				os.Exit(1)
+			}
+			if len(data) > 1<<30 {
+				fmt.Fprintln(os.Stderr, progName+": 标准输入超过 1GiB 上限, 拒绝处理")
 				os.Exit(1)
 			}
 		} else {
