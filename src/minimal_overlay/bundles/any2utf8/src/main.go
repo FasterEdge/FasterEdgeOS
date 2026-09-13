@@ -34,44 +34,48 @@ import (
 
 const progName = "any2utf8"
 
+// version 与 FasterEdge 版本链一致的语义化版本。
+const version = "1.0.20260913"
+
 // nameAliases 常用名别名 → IANA 注册名(大小写不敏感)。
 var nameAliases = map[string]string{
-	"utf8":            "UTF-8",
-	"utf-8":           "UTF-8",
-	"unicode":         "UTF-8",
-	"gb2312":          "GBK",
-	"gb-2312":         "GBK",
-	"gb_2312":         "GBK",
-	"chinese":         "GBK",
-	"cp936":           "GBK",
-	"ms936":           "GBK",
-	"gb18030":         "GB18030",
-	"cp54936":         "GB18030",
-	"big5":            "Big5",
-	"big-5":           "Big5",
-	"big5-hkscs":      "Big5",
-	"cp950":           "Big5",
-	"shift-jis":       "Shift_JIS",
-	"shift_jis":       "Shift_JIS",
-	"shiftjis":        "Shift_JIS",
-	"sjis":            "Shift_JIS",
-	"cp932":           "Shift_JIS",
-	"ms932":           "Shift_JIS",
-	"euc-jp":          "EUC-JP",
-	"eucjp":           "EUC-JP",
-	"euc-kr":          "EUC-KR",
-	"euckr":           "EUC-KR",
-	"ksc5601":         "EUC-KR",
-	"ks_c_5601-1987":  "EUC-KR",
-	"cp949":           "EUC-KR",
-	"ms949":           "EUC-KR",
-	"windows-1252":    "Windows-1252",
-	"cp1252":          "Windows-1252",
-	"latin1":          "ISO-8859-1",
-	"iso-8859-1":      "ISO-8859-1",
-	"latin2":          "ISO-8859-2",
-	"iso-8859-2":      "ISO-8859-2",
-	"koi8-r":          "KOI8-R",
+	"utf8":           "UTF-8",
+	"gbk":            "GBK",
+	"utf-8":          "UTF-8",
+	"unicode":        "UTF-8",
+	"gb2312":         "GBK",
+	"gb-2312":        "GBK",
+	"gb_2312":        "GBK",
+	"chinese":        "GBK",
+	"cp936":          "GBK",
+	"ms936":          "GBK",
+	"gb18030":        "GB18030",
+	"cp54936":        "GB18030",
+	"big5":           "Big5",
+	"big-5":          "Big5",
+	"big5-hkscs":     "Big5",
+	"cp950":          "Big5",
+	"shift-jis":      "Shift_JIS",
+	"shift_jis":      "Shift_JIS",
+	"shiftjis":       "Shift_JIS",
+	"sjis":           "Shift_JIS",
+	"cp932":          "Shift_JIS",
+	"ms932":          "Shift_JIS",
+	"euc-jp":         "EUC-JP",
+	"eucjp":          "EUC-JP",
+	"euc-kr":         "EUC-KR",
+	"euckr":          "EUC-KR",
+	"ksc5601":        "EUC-KR",
+	"ks_c_5601-1987": "EUC-KR",
+	"cp949":          "EUC-KR",
+	"ms949":          "EUC-KR",
+	"windows-1252":   "Windows-1252",
+	"cp1252":         "Windows-1252",
+	"latin1":         "ISO-8859-1",
+	"iso-8859-1":     "ISO-8859-1",
+	"latin2":         "ISO-8859-2",
+	"iso-8859-2":     "ISO-8859-2",
+	"koi8-r":         "KOI8-R",
 }
 
 // resolveEncoding 解析编码名 → encoding.Encoding。name 为空/"auto" 返回 nil(自动探测)。
@@ -83,30 +87,45 @@ func resolveEncoding(name string) (encoding.Encoding, string, error) {
 	case "utf-16", "utf16":
 		return unicode.UTF16(unicode.LittleEndian, unicode.UseBOM), "UTF-16", nil
 	case "utf-16le", "utf16le", "utf-16-le":
-		return unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM), "UTF-16LE", nil
+		return unicode.UTF16(unicode.LittleEndian, unicode.UseBOM), "UTF-16LE", nil
 	case "utf-16be", "utf16be", "utf-16-be":
-		return unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM), "UTF-16BE", nil
+		return unicode.UTF16(unicode.BigEndian, unicode.UseBOM), "UTF-16BE", nil
 	}
 	canon := n
+	display := n
 	if a, ok := nameAliases[n]; ok {
 		canon = strings.ToLower(a)
+		display = a
 	}
 	// IANA 索引(含 GBK/GB18030/Big5/Shift_JIS/EUC-JP/EUC-KR/Windows-1252 等,
 	// 全部纯 Go 实现, 无需系统 iconv)。
 	for _, idx := range []*ianaindex.Index{ianaindex.IANA, ianaindex.MIME} {
 		if e, err := idx.Encoding(canon); err == nil && e != nil {
-			return e, canon, nil
+			return e, display, nil
 		}
 	}
 	if e, err := ianaindex.IANA.Encoding(n); err == nil && e != nil {
-		return e, n, nil
+		return e, display, nil
 	}
 	if e, err := ianaindex.MIME.Encoding(n); err == nil && e != nil {
-		return e, n, nil
+		return e, display, nil
 	}
 	return nil, "", fmt.Errorf(
 		"未知编码 %q: 可用 %s --list 查看内置编码; 若确需系统编码集, 可安装 locales 并 locale-gen(或升级 iconv 支持)",
 		name, progName)
+}
+
+// resolveTargetEncoding 解析目标编码。UTF-16LE/BE 编码时不写 BOM(与 GNU iconv 一致);
+// 解码侧仍由 resolveEncoding 负责剥离输入 BOM。
+func resolveTargetEncoding(name string) (encoding.Encoding, string, error) {
+	n := strings.ToLower(strings.TrimSpace(name))
+	switch n {
+	case "utf-16le", "utf16le", "utf-16-le":
+		return unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM), "UTF-16LE", nil
+	case "utf-16be", "utf16be", "utf-16-be":
+		return unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM), "UTF-16BE", nil
+	}
+	return resolveEncoding(name)
 }
 
 // localeRe 匹配 "zh_CN.GBK" / "en_US.UTF-8" 等 locale 名尾部的 charset 段。
@@ -344,6 +363,7 @@ func printUsage(w io.Writer) {
   -output 文件    输出文件(默认 stdout; 与 -inplace 互斥)
   -inplace        原地转换(覆盖原文件; 需要文件参数)
   -strict         严格模式: 出现替换字符/非法序列即失败(exit 1)
+  -version        打印版本
   -list           列出内置编码
   -detect         探测源编码并输出, 不转换
   -sys-encoding   输出系统默认编码检测结果
@@ -372,6 +392,7 @@ func main() {
 	detect := fs.Bool("detect", false, "仅探测源编码")
 	sysEnc := fs.Bool("sys-encoding", false, "输出系统默认编码")
 	strict := fs.Bool("strict", false, "严格模式")
+	ver := fs.Bool("version", false, "打印版本")
 
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -381,6 +402,9 @@ func main() {
 	}
 
 	switch {
+	case *ver:
+		fmt.Fprintln(os.Stdout, version)
+		return
 	case *list:
 		listEncodings(os.Stdout)
 		return
@@ -397,7 +421,7 @@ func main() {
 	// 目标编码解析(-to)。
 	var toEnc encoding.Encoding
 	if *toFlag != "" && *toFlag != "auto" {
-		e, _, err := resolveEncoding(*toFlag)
+		e, _, err := resolveTargetEncoding(*toFlag)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s: %v\n", progName, err)
 			os.Exit(2)

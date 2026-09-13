@@ -133,6 +133,51 @@ func TestConvertUTF16LE(t *testing.T) {
 	}
 }
 
+func TestConvertUTF16WithBOMStripped(t *testing.T) {
+	// 带 BOM 的 UTF-16LE/BE 输入应剥离 BOM, 不输出 U+FEFF。
+	cases := []struct {
+		name    string
+		encName string
+		data    []byte
+	}{
+		{"utf16le bom", "UTF-16LE", []byte{0xFF, 0xFE, 'A', 0, 'B', 0}},
+		{"utf16be bom", "UTF-16BE", []byte{0xFE, 0xFF, 0, 'A', 0, 'B'}},
+	}
+	for _, c := range cases {
+		enc, _, err := resolveEncoding(c.encName)
+		if err != nil {
+			t.Fatalf("%s: resolve: %v", c.name, err)
+		}
+		var buf bytes.Buffer
+		if err := convertReader(bytes.NewReader(c.data), &buf, enc); err != nil {
+			t.Fatalf("%s: convert: %v", c.name, err)
+		}
+		if got := buf.String(); got != "AB" {
+			t.Errorf("%s convert = %q, want AB (BOM stripped)", c.name, got)
+		}
+	}
+}
+
+func TestResolveEncodingDisplayName(t *testing.T) {
+	cases := map[string]string{
+		"gbk":       "GBK",
+		"cp936":     "GBK",
+		"big5":      "Big5",
+		"shift-jis": "Shift_JIS",
+		"cp932":     "Shift_JIS",
+		"euc-jp":    "EUC-JP",
+	}
+	for in, want := range cases {
+		_, name, err := resolveEncoding(in)
+		if err != nil {
+			t.Fatalf("resolveEncoding(%q): %v", in, err)
+		}
+		if name != want {
+			t.Errorf("resolveEncoding(%q) name = %q, want %q", in, name, want)
+		}
+	}
+}
+
 func TestConvertStrict(t *testing.T) {
 	enc, _, err := resolveEncoding("GBK")
 	if err != nil {
@@ -163,6 +208,21 @@ func TestEncodeToGBK(t *testing.T) {
 	}
 	if !bytes.Equal(out, []byte{0xD6, 0xD0, 0xCE, 0xC4}) {
 		t.Errorf("encode = % x, want d6 d0 ce c4", out)
+	}
+}
+
+func TestEncodeToUTF16LEWithoutBOM(t *testing.T) {
+	enc, _, err := resolveTargetEncoding("UTF-16LE")
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := encodeTo([]byte("AB\n"), enc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []byte{'A', 0, 'B', 0, '\n', 0}
+	if !bytes.Equal(out, want) {
+		t.Errorf("encode = % x, want % x (no BOM)", out, want)
 	}
 }
 
@@ -197,4 +257,29 @@ func TestWriteOutputPreservesPerms(t *testing.T) {
 	if got := fi.Mode().Perm(); got != 0o600 {
 		t.Errorf("preserved perms = %o, want 600", got)
 	}
+}
+
+func TestVersionConstant(t *testing.T) {
+	if version != "1.0.20260913" {
+		t.Fatalf("version = %q, want 1.0.20260913", version)
+	}
+}
+
+func FuzzSniffEncoding(f *testing.F) {
+	f.Add([]byte("hello 世界"))
+	f.Add([]byte{0xFF, 0xFE, 'A', 0})
+	f.Add([]byte{0xD6, 0xD0, 0xCE, 0xC4})
+	f.Add([]byte{})
+	f.Fuzz(func(t *testing.T, data []byte) {
+		_ = sniffEncoding(data)
+	})
+}
+
+func FuzzResolveEncoding(f *testing.F) {
+	f.Add("GBK")
+	f.Add("utf-16le")
+	f.Add("not-a-codec")
+	f.Fuzz(func(t *testing.T, name string) {
+		_, _, _ = resolveEncoding(name)
+	})
 }
