@@ -1,4 +1,4 @@
-module fasteredgeos/any2utf8
+module github.com/FasterEdge/Any2UTF8
 
 go 1.25.0
 
