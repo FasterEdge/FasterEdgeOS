@@ -12,6 +12,7 @@ FasterEdgeOS 是一个面向边缘节点和集群设备的轻量 Linux 发行版
 
 - ✅ DontCrack-Manager 进程监管（系统初始工具，监管多个 DontCrack 实例，见第五节）
 - ✅ Any2UTF8 文本/文件转 UTF-8 工具（内置常见编码集，免系统 iconv，自动探测编码）
+- ✅ Any2PCD 文本/二进制点云转 PCD 工具（标准 PCD v0.7，零依赖，见第五节）
 - FasterEdge 节点运行时（规划中）
 - FasterEdge2Api 集群拓扑与系统管理 API（规划中）
 - 系统健康检查、日志和资源状态（规划中）
@@ -176,6 +177,17 @@ src/minimal_overlay/bundles/fasteredgeos/
 OVERLAY_BUNDLES=dhcp,fasteredgeos
 ```
 
+另附两个独立的系统初始工具 bundle（不属于 `fasteredgeos` bundle，按需追加到列表）：
+
+```text
+OVERLAY_BUNDLES=dhcp,fasteredgeos,any2pcd,any2utf8
+```
+
+- **any2pcd**：bin / 文本 / CSV / PCD → 标准 PCD v0.7 点云转换工具（Go 标准库实现，零依赖）。
+- **any2utf8**：文本/文件编码转换工具（内置 GBK / GB18030 / Big5 / Shift_JIS / UTF-16 等常见编码，不依赖系统 iconv 与 locale）。
+
+两者均支持 `-version`（当前 `1.0.20260913`）；离线升级可设置 `ANY2PCD_SOURCE_DIR` / `ANY2UTF8_SOURCE_DIR` 指向本地新版源码目录，构建时优先使用指定源码。详见 `src/minimal_overlay/bundles/any2pcd/README.md` 与 `src/minimal_overlay/bundles/any2utf8/README.md`。
+
 服务管理采用 BusyBox init 兼容方式，不依赖 systemd：
 
 ```text
@@ -204,7 +216,8 @@ wget -q -O - --post-data='' http://127.0.0.1:11884/shutdown
 切换或回滚”流程，禁止覆盖当前运行版本）。
 
 > CI 构建（`manual.yml`）已启用 `OVERLAY_BUNDLES=dhcp,fasteredgeos` 并通过
-> `actions/setup-go` 提供 Go 工具链；本地构建需自行安装 Go 1.25+。
+> `actions/setup-go` 提供 Go 工具链；本地构建需自行安装 Go 1.25+。`any2pcd` /
+> `any2utf8` 的编译与 overlay 构建由 `check.yml` 独立门禁覆盖。
 
 ## 六、系统管理与远程更新
 
