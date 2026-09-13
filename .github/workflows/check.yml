@@ -46,3 +46,41 @@ jobs:
         CGO_ENABLED=0 go vet ./...
         CGO_ENABLED=0 go test ./...
         echo "any2utf8 build+vet+test OK"
+    - name: 'overlay bundle 构建+安装'
+      run: |
+        set -e
+        cd src/minimal_overlay
+        ./overlay_clean.sh >/dev/null
+        ./overlay_build.sh any2utf8
+        BIN=$(pwd)/../work/overlay_rootfs/usr/bin/any2utf8
+        test -x "$BIN"
+        "$BIN" -version
+
+  any2pcd:
+    name: 'any2pcd go 编译 + overlay bundle'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
+        cache-dependency-path: src/minimal_overlay/bundles/any2pcd/src/go.mod
+    - name: 'go build + vet + test'
+      working-directory: src/minimal_overlay/bundles/any2pcd/src
+      run: |
+        set -e
+        export GOFLAGS=-mod=mod
+        CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /tmp/any2pcd .
+        test -x /tmp/any2pcd
+        CGO_ENABLED=0 go vet ./...
+        CGO_ENABLED=0 go test ./...
+        echo "any2pcd build+vet+test OK"
+    - name: 'overlay bundle 构建+安装'
+      run: |
+        set -e
+        cd src/minimal_overlay
+        ./overlay_clean.sh >/dev/null
+        ./overlay_build.sh any2pcd
+        BIN=$(pwd)/../work/overlay_rootfs/usr/bin/any2pcd
+        test -x "$BIN"
+        "$BIN" -version

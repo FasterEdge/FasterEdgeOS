@@ -17,7 +17,7 @@ FasterEdgeOS 是一个面向边缘节点和集群设备的轻量 Linux 发行版
 - 系统健康检查、日志和资源状态（规划中）
 - 带签名校验与回滚能力的远程更新（规划中）
 
-> 当前版本处于基础系统改造阶段。已经具备 Linux Live ISO、BIOS/UEFI 和 x86/AArch64 构建基础；系统初始工具（DontCrack-Manager 多进程根管理器、Any2UTF8 转换工具）已通过 overlay bundle 接入。
+> 当前版本处于基础系统改造阶段。已经具备 Linux Live ISO、BIOS/UEFI 和 x86/AArch64 构建基础；系统初始工具（DontCrack-Manager 多进程根管理器、Any2UTF8 转换工具、Any2PCD 点云转换工具）已通过 overlay bundle 接入。
 
 ## 二、系统组成
 
