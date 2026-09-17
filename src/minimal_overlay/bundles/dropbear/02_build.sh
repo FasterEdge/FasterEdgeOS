@@ -55,8 +55,10 @@ touch $DEST_DIR/etc/group
 echo "root:x:0:" \
   > $DEST_DIR/etc/group
 
-# 添加密码为 'toor' 的 root 用户。
-echo "root:AprZpdBUhZXss:0:0:Minimal Root,,,:/root:/bin/sh" \
+# 不预设任何 root 密码: 密码字段置 '!' 锁定账户, 禁用密码登录(fail-closed)。
+# 启用 dropbear 前必须先设置 root 密码或配置密钥认证(见 README 安全说明),
+# 避免镜像内置众所周知的默认口令(旧值为 'toor')导致未授权 SSH 登录。
+echo "root:!:0:0:Minimal Root,,,:/root:/bin/sh" \
   > $DEST_DIR/etc/passwd
 
 # 为 root 用户创建主目录。
