@@ -40,12 +40,8 @@ mkdir -p $DEST_DIR/etc/dropbear
 
 # 创建 Dropbear SSH 配置 开始
 
-for key_type in rsa dss ecdsa; do
-  echo "正在生成 '$key_type' 主机密钥。"
-  $DEST_DIR/usr/bin/dropbearkey \
-    -t $key_type \
-    -f $DEST_DIR/etc/dropbear/dropbear_${key_type}_host_key
-done
+# 主机密钥不在构建期生成: 构建期固化的 host key 会使所有预构建镜像共享
+# 同一密钥(SSH 可被 MITM), 改为每实例首启时(20_dropbear.sh)按需生成。
 
 # 创建用户/组配置文件。
 touch $DEST_DIR/etc/passwd
