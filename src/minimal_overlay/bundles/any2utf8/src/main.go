@@ -35,7 +35,7 @@ import (
 const progName = "any2utf8"
 
 // version 与 FasterEdge 版本链一致的语义化版本。
-const version = "1.0.20260913"
+const version = "1.0.20260922"
 
 // nameAliases 常用名别名 → IANA 注册名(大小写不敏感)。
 var nameAliases = map[string]string{

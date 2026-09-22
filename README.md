@@ -186,7 +186,7 @@ OVERLAY_BUNDLES=dhcp,fasteredgeos,any2pcd,any2utf8
 - **any2pcd**：bin / 文本 / CSV / PCD → 标准 PCD v0.7 点云转换工具（Go 标准库实现，零依赖）。
 - **any2utf8**：文本/文件编码转换工具（内置 GBK / GB18030 / Big5 / Shift_JIS / UTF-16 等常见编码，不依赖系统 iconv 与 locale）。
 
-两者均支持 `-version`（当前 `1.0.20260913`）；离线升级可设置 `ANY2PCD_SOURCE_DIR` / `ANY2UTF8_SOURCE_DIR` 指向本地新版源码目录，构建时优先使用指定源码。详见 `src/minimal_overlay/bundles/any2pcd/README.md` 与 `src/minimal_overlay/bundles/any2utf8/README.md`。
+两者均支持 `-version`（当前 `1.0.20260922`）；离线升级可设置 `ANY2PCD_SOURCE_DIR` / `ANY2UTF8_SOURCE_DIR` 指向本地新版源码目录，构建时优先使用指定源码。详见 `src/minimal_overlay/bundles/any2pcd/README.md` 与 `src/minimal_overlay/bundles/any2utf8/README.md`。
 
 服务管理采用 BusyBox init 兼容方式，不依赖 systemd：
 

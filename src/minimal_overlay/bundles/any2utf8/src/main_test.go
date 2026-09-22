@@ -260,8 +260,8 @@ func TestWriteOutputPreservesPerms(t *testing.T) {
 }
 
 func TestVersionConstant(t *testing.T) {
-	if version != "1.0.20260913" {
-		t.Fatalf("version = %q, want 1.0.20260913", version)
+	if version != "1.0.20260922" {
+		t.Fatalf("version = %q, want 1.0.20260922", version)
 	}
 }
 
