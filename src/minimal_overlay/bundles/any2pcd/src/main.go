@@ -37,7 +37,7 @@ const maxFields = 16
 var fieldNameRe = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 // version 与 FasterEdge 版本链一致的语义化版本。
-const version = "1.0.20260922"
+const version = "1.0.20261022"
 
 // Field 描述输出 PCD 的一个字段。
 type Field struct {
