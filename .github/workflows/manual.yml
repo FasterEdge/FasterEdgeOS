@@ -105,10 +105,15 @@ jobs:
       run: |
         cd .github
         bash ./test_qemu.sh
+    # PR 的 ref_name 形如 15/merge,dependabot 分支名也含斜杠,
+    # 而 upload-artifact 的工件名不允许出现 /,这里统一替换为连字符。
+    - name: '计算工件名'
+      shell: bash
+      run: echo "ARTIFACT_NAME=fasteredgeos-${GITHUB_REF_NAME//\//-}" >> "$GITHUB_ENV"
     - name: 'Upload Build Artifacts'
       uses: actions/upload-artifact@v4
       with:
-        name: 'fasteredgeos-${{ github.ref_name }}'
+        name: ${{ env.ARTIFACT_NAME }}
         path: |
           src/fasteredgeos.iso
           src/fasteredgeos_image.tgz
