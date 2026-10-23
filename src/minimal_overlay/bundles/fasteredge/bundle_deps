@@ -1,0 +1,4 @@
+# fasteredge 依赖 fasteredgeos: 需根管理器(DontCrack-Manager)及其配置
+# /etc/fasteredgeos/manager.yaml 先行就位, 03_install.sh 才能把 fasteredge
+# 服务 stanza 追加进去。完整构建时 fasteredgeos 已在前, 依赖自动跳过。
+fasteredgeos

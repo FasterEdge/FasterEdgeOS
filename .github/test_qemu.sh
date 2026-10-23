@@ -9,7 +9,9 @@ cd ../src
 
 echo "`date` | *** FasterEdgeOS QEMU 测试 - 开始 ***"
 
-qemu-system-x86_64 -m 256M -cdrom fasteredgeos.iso -boot d -nographic &
+# -m 512M: FasterEdge 软件组合(fasteredge/fasteredge2api 等 Go 二进制)嵌入
+# initramfs 后体积显著增长, 256M 易 OOM; 提升到 512M 保证启动与运行稳定。
+qemu-system-x86_64 -m 512M -cdrom fasteredgeos.iso -boot d -nographic &
 
 sleep 5
 

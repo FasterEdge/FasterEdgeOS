@@ -1,0 +1,24 @@
+#!/bin/sh
+# FasterEdge 开源项目 - Github: https://github.com/FasterEdge - Gitee: https://gitee.com/FasterEdge
+
+# FasterEdge 节点运行时常驻包装器。
+# FasterEdge demo(examples/demo)是一次性程序: 完成骨架演示后约 100ms 内优雅
+# 退出(exit 0), 自身不常驻。而根管理器 DontCrack-Manager 监管的是常驻进程,
+# 需要子进程持续存活才判定健康。本包装器循环拉起一次性 demo, 使 fasteredge
+# 服务保持 StateRunning; 每次迭代间隔由 FE_NODE_INTERVAL(秒, 默认 300)控制。
+# 日志写入 stdout, 由根管理器按服务 file_log 配置落盘。
+
+DEMO=/usr/bin/fasteredge-demo
+INTERVAL=${FE_NODE_INTERVAL:-300}
+
+echo "fasteredge-node: 启动 (demo=$DEMO, interval=${INTERVAL}s)"
+
+while : ; do
+  # demo 一次性运行后退出; 无论退出码如何都继续循环(单次失败不影响常驻)。
+  if "$DEMO" ; then
+    echo "fasteredge-node: demo 正常退出 ($(date 2>/dev/null || true))"
+  else
+    echo "fasteredge-node: demo 退出码 $? ($(date 2>/dev/null || true))"
+  fi
+  sleep "$INTERVAL" || true
+done

@@ -13,8 +13,9 @@ cp -f syslinux.cfg ../src/minimal_boot/bios/boot/syslinux/syslinux.cfg
 # 注意: 必须锚定行首(^), 否则会把注释样例行(# OVERLAY_LOCATION=...)也改写,
 # 产生两个匹配行, read_property 会返回多值导致构建判断失效。
 sed -i "s|^OVERLAY_LOCATION.*|OVERLAY_LOCATION=rootfs|" ../src/.config
-# CI 构建启用 fasteredgeos bundle(系统初始工具: DontCrack-Manager 根管理器)。
-sed -i "s|^OVERLAY_BUNDLES=.*|OVERLAY_BUNDLES=dhcp,fasteredgeos|" ../src/.config
+# CI 构建启用 FasterEdge 软件组合(系统初始工具 + FasterEdge 节点运行时/API +
+# any2pcd/any2utf8)。与 src/.config 默认组合保持一致, 保证 CI 产物确定可复现。
+sed -i "s|^OVERLAY_BUNDLES=.*|OVERLAY_BUNDLES=dhcp,fasteredgeos,fasteredge,any2pcd,any2utf8,fasteredge2api,mll_hello,mll_logo,mll_source|" ../src/.config
 
 sudo apt-get -qq -y update
 sudo apt-get -qq -y upgrade

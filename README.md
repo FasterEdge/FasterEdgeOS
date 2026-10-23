@@ -13,12 +13,12 @@ FasterEdgeOS 是一个面向边缘节点和集群设备的轻量 Linux 发行版
 - ✅ DontCrack-Manager 进程监管（系统初始工具，监管多个 DontCrack 实例，见第五节）
 - ✅ Any2UTF8 文本/文件转 UTF-8 工具（内置常见编码集，免系统 iconv，自动探测编码）
 - ✅ Any2PCD 文本/二进制点云转 PCD 工具（标准 PCD v0.7，零依赖，见第五节）
-- FasterEdge 节点运行时（规划中）
-- FasterEdge2Api 集群拓扑与系统管理 API（规划中）
+- ✅ FasterEdge 节点运行时（框架骨架演示，常驻监管，见第五节）
+- ✅ FasterEdge2Api 集群拓扑与系统管理 API（常驻 HTTP 服务，带健康探针，见第五节）
 - 系统健康检查、日志和资源状态（规划中）
 - 带签名校验与回滚能力的远程更新（规划中）
 
-> 当前版本处于基础系统改造阶段。已经具备 Linux Live ISO、BIOS/UEFI 和 x86/AArch64 构建基础；系统初始工具（DontCrack-Manager 多进程根管理器、Any2UTF8 转换工具、Any2PCD 点云转换工具）已通过 overlay bundle 接入。
+> 当前版本处于基础系统改造阶段。已经具备 Linux Live ISO、BIOS/UEFI 和 x86/AArch64 构建基础；系统初始工具（DontCrack-Manager 多进程根管理器、Any2UTF8、Any2PCD、FasterEdge 节点运行时、FasterEdge2Api 集群 API）已通过 overlay bundle 接入，开箱即用。
 
 ## 二、系统组成
 
@@ -171,22 +171,21 @@ src/minimal_overlay/bundles/fasteredgeos/
 - **演示子进程**：安装 `/usr/bin/fasteredgeos-demo`（由 demo 服务监管）。
 - **目录初始化**：`/var/lib/fasteredgeos/` 与 `/var/log/fasteredgeos/`。
 
-配置启用后，普通构建命令会自动把系统初始工具打入镜像：
+FasterEdgeOS 默认启用 FasterEdge 软件组合（开箱即用），普通构建命令会自动把这些系统初始工具打入镜像：
 
 ```text
-OVERLAY_BUNDLES=dhcp,fasteredgeos
+OVERLAY_BUNDLES=dhcp,fasteredgeos,fasteredge,any2pcd,any2utf8,fasteredge2api,mll_hello,mll_logo,mll_source
 ```
 
-另附两个独立的系统初始工具 bundle（不属于 `fasteredgeos` bundle，按需追加到列表）：
+除 `fasteredgeos`（DontCrack-Manager 根管理器，见上）外，其余 FasterEdge 软件组合 bundle：
 
 ```text
-OVERLAY_BUNDLES=dhcp,fasteredgeos,any2pcd,any2utf8
-```
-
+- **fasteredge**：FasterEdge 节点运行时。编译 `examples/demo` 为 `/usr/bin/fasteredge-demo`（一次性骨架演示），附带常驻包装器 `/usr/bin/fasteredge-node`，由根管理器监管。源码固定 commit，可设 `FE_SOURCE_DIR` 指向本地源码。详见 `src/minimal_overlay/bundles/fasteredge/README.md`。
+- **fasteredge2api**：FasterEdge 集群 HTTP API 服务（常驻，子进程监听 `127.0.0.1:8080`，健康探针直连 `/healthz`；管理端口 11885）。源码固定 commit，可设 `FE2A_SOURCE_DIR` 指向本地源码。详见 `src/minimal_overlay/bundles/fasteredge2api/README.md`。
 - **any2pcd**：bin / 文本 / CSV / PCD → 标准 PCD v0.7 点云转换工具（Go 标准库实现，零依赖）。
 - **any2utf8**：文本/文件编码转换工具（内置 GBK / GB18030 / Big5 / Shift_JIS / UTF-16 等常见编码，不依赖系统 iconv 与 locale）。
 
-两者均支持 `-version`（当前 `1.0.20261022`）；离线升级可设置 `ANY2PCD_SOURCE_DIR` / `ANY2UTF8_SOURCE_DIR` 指向本地新版源码目录，构建时优先使用指定源码。详见 `src/minimal_overlay/bundles/any2pcd/README.md` 与 `src/minimal_overlay/bundles/any2utf8/README.md`。
+其中 `fasteredge2api` / `any2pcd` / `any2utf8` 支持版本查询（当前 `1.0.20261022`）；离线升级可设置 `FE_SOURCE_DIR` / `FE2A_SOURCE_DIR` / `ANY2PCD_SOURCE_DIR` / `ANY2UTF8_SOURCE_DIR` 指向本地新版源码目录，构建时优先使用指定源码。详见各自 bundle 目录下的 `README.md`。
 
 服务管理采用 BusyBox init 兼容方式，不依赖 systemd：
 
@@ -211,13 +210,14 @@ wget -q -O - http://127.0.0.1:11884/status
 wget -q -O - --post-data='' http://127.0.0.1:11884/shutdown
 ```
 
-后续将在此基础上接入：FasterEdge2Api 集群拓扑与系统管理 API、FasterEdge 节点运行时、
-带签名校验与回滚能力的远程更新（远程更新仍按“下载 → 校验 → 安装 → 健康检查 →
-切换或回滚”流程，禁止覆盖当前运行版本）。
+后续将在此基础上接入：带签名校验与回滚能力的远程更新（远程更新仍按“下载 → 校验 →
+安装 → 健康检查 → 切换或回滚”流程，禁止覆盖当前运行版本）。
 
-> CI 构建（`manual.yml`）已启用 `OVERLAY_BUNDLES=dhcp,fasteredgeos` 并通过
-> `actions/setup-go` 提供 Go 工具链；本地构建需自行安装 Go 1.25+。`any2pcd` /
-> `any2utf8` 的编译与 overlay 构建由 `check.yml` 独立门禁覆盖。
+> CI 构建（`manual.yml`）已启用完整 FasterEdge 软件组合
+> （`OVERLAY_BUNDLES=dhcp,fasteredgeos,fasteredge,any2pcd,any2utf8,fasteredge2api,...`）
+> 并通过 `actions/setup-go` 提供 Go 1.26 工具链；本地构建需自行安装 Go 1.25+。
+> `fasteredge` / `fasteredge2api` / `any2pcd` / `any2utf8` 的编译与 overlay
+> 构建由 `check.yml` 独立门禁覆盖。
 
 ## 六、系统管理与远程更新
 

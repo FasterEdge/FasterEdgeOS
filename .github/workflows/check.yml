@@ -84,3 +84,48 @@ jobs:
         BIN=$(pwd)/../work/overlay_rootfs/usr/bin/any2pcd
         test -x "$BIN"
         "$BIN" -version
+
+  fasteredge:
+    name: 'fasteredge go 编译 + overlay bundle'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.26'
+    - name: 'overlay bundle 构建+安装'
+      run: |
+        set -e
+        cd src/minimal_overlay
+        ./overlay_clean.sh >/dev/null
+        # fasteredge 依赖 fasteredgeos(根管理器), overlay_build 会依 bundle_deps 先行构建。
+        ./overlay_build.sh fasteredge
+        BIN=$(pwd)/../work/overlay_rootfs/usr/bin/fasteredge-demo
+        test -x "$BIN"
+        # examples/demo 为一次性程序: 完成框架骨架演示后约 100ms 优雅退出(exit 0)。
+        timeout 60 "$BIN"
+        echo "fasteredge demo 运行 OK(exit 0)"
+
+  fasteredge2api:
+    name: 'fasteredge2api go 编译 + overlay bundle'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.26'
+    - name: 'overlay bundle 构建+安装'
+      run: |
+        set -e
+        cd src/minimal_overlay
+        ./overlay_clean.sh >/dev/null
+        # fasteredge2api 依赖 fasteredgeos(根管理器), overlay_build 会依 bundle_deps 先行构建。
+        ./overlay_build.sh fasteredge2api
+        BIN=$(pwd)/../work/overlay_rootfs/usr/bin/fasteredge2api
+        test -x "$BIN"
+        "$BIN" version
+        # 离线引导冒烟测试: token 子命令用临时 keyring 签发 admin 令牌(离线, exit 0)。
+        KR=$(mktemp -d)/keyring.json
+        TOK=$("$BIN" token --subject admin --ttl 24h --keyring "$KR")
+        test -n "$TOK"
+        echo "fasteredge2api version + token 引导冒烟测试 OK"
