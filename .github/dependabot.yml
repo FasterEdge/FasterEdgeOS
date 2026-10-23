@@ -9,3 +9,21 @@ updates:
     labels:
       - dependencies
       - security
+  - package-ecosystem: gomod
+    directory: /src/minimal_overlay/bundles/any2pcd/src
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - security
+  - package-ecosystem: gomod
+    directory: /src/minimal_overlay/bundles/any2utf8/src
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - security
