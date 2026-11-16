@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -227,6 +228,9 @@ func TestEncodeToUTF16LEWithoutBOM(t *testing.T) {
 }
 
 func TestWriteOutputNewFilePerms(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows 无 Unix 权限语义: os.Chmod 0644/0600 无法精确映射到 ACL, fi.Mode().Perm() 返回合成值")
+	}
 	dir := t.TempDir()
 	p := filepath.Join(dir, "out.txt")
 	if err := writeOutput(p, []byte("data")); err != nil {
@@ -242,6 +246,9 @@ func TestWriteOutputNewFilePerms(t *testing.T) {
 }
 
 func TestWriteOutputPreservesPerms(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows 无 Unix 权限语义: os.Chmod 0644/0600 无法精确映射到 ACL, fi.Mode().Perm() 返回合成值")
+	}
 	dir := t.TempDir()
 	p := filepath.Join(dir, "out.txt")
 	if err := os.WriteFile(p, []byte("old"), 0o600); err != nil {
@@ -260,8 +267,8 @@ func TestWriteOutputPreservesPerms(t *testing.T) {
 }
 
 func TestVersionConstant(t *testing.T) {
-	if version != "1.0.20261022" {
-		t.Fatalf("version = %q, want 1.0.20261022", version)
+	if version != "1.0.20261116" {
+		t.Fatalf("version = %q, want 1.0.20261116", version)
 	}
 }
 

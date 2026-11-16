@@ -7,9 +7,9 @@ set -e
 
 . ../../common.sh
 
-# 固定的 FasterEdge commit: 随上游修复演进手动更新(当前为 v1.0.20261022 线,
-# 对齐 go.mod 的 go 1.26.0 与 Docker golang:1.26 构建镜像)。
-FE_COMMIT=${FE_COMMIT:-212b9b9236be22a87c6c96aae67d4a9481c7eb7f}
+# 固定的 FasterEdge commit: 随上游修复演进手动更新(当前为 v1.0.20261116 线,
+# 对齐 go.mod 的 go 1.27.4 与 Docker golang:1.27.4 构建镜像)。
+FE_COMMIT=${FE_COMMIT:-2996451bde6d9106322165a2ddda1ec2644962b8}
 DEST_DIR=$OVERLAY_SOURCE_DIR/FasterEdge
 REPO_URL=https://github.com/FasterEdge/FasterEdge.git
 

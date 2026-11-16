@@ -185,7 +185,7 @@ OVERLAY_BUNDLES=dhcp,fasteredgeos,fasteredge,any2pcd,any2utf8,fasteredge2api,mll
 - **any2pcd**：bin / 文本 / CSV / PCD → 标准 PCD v0.7 点云转换工具（Go 标准库实现，零依赖）。
 - **any2utf8**：文本/文件编码转换工具（内置 GBK / GB18030 / Big5 / Shift_JIS / UTF-16 等常见编码，不依赖系统 iconv 与 locale）。
 
-其中 `fasteredge2api` / `any2pcd` / `any2utf8` 支持版本查询（当前 `1.0.20261022`）；离线升级可设置 `FE_SOURCE_DIR` / `FE2A_SOURCE_DIR` / `ANY2PCD_SOURCE_DIR` / `ANY2UTF8_SOURCE_DIR` 指向本地新版源码目录，构建时优先使用指定源码。详见各自 bundle 目录下的 `README.md`。
+其中 `fasteredge2api` / `any2pcd` / `any2utf8` 支持版本查询（当前 `1.0.20261116`）；离线升级可设置 `FE_SOURCE_DIR` / `FE2A_SOURCE_DIR` / `ANY2PCD_SOURCE_DIR` / `ANY2UTF8_SOURCE_DIR` 指向本地新版源码目录，构建时优先使用指定源码。详见各自 bundle 目录下的 `README.md`。
 
 服务管理采用 BusyBox init 兼容方式，不依赖 systemd：
 
@@ -215,7 +215,7 @@ wget -q -O - --post-data='' http://127.0.0.1:11884/shutdown
 
 > CI 构建（`manual.yml`）已启用完整 FasterEdge 软件组合
 > （`OVERLAY_BUNDLES=dhcp,fasteredgeos,fasteredge,any2pcd,any2utf8,fasteredge2api,...`）
-> 并通过 `actions/setup-go` 提供 Go 1.26 工具链；本地构建需自行安装 Go 1.25+。
+> 并通过 `actions/setup-go` 提供 Go 1.27.4 工具链；本地构建需自行安装 Go 1.27.4+。
 > `fasteredge` / `fasteredge2api` / `any2pcd` / `any2utf8` 的编译与 overlay
 > 构建由 `check.yml` 独立门禁覆盖。
 

@@ -208,7 +208,7 @@ and signed, rollback-capable remote updates are planned on top of this manager; 
 updates must still follow "download → verify → install → health check → switch or rollback".
 
 > CI builds (`manual.yml`) enable `OVERLAY_BUNDLES=dhcp,fasteredgeos` and provide a Go
-> toolchain via `actions/setup-go`; local builds need Go 1.25+ installed.
+> toolchain via `actions/setup-go`; local builds need Go 1.27.4+ installed.
 
 ### 6. Planned System Management and Remote Updates
 

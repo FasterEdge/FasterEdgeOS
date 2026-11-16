@@ -50,6 +50,6 @@ any2pcd -outdir ./out scan1.bin scan2.bin scan3.bin                  # 批量转
 ## 构建
 
 随 `OVERLAY_BUNDLES` 启用(bundle 目录加入列表, 如
-`OVERLAY_BUNDLES="dhcp,fasteredgeos,any2pcd"`)。需要宿主机 Go 1.25+
+`OVERLAY_BUNDLES="dhcp,fasteredgeos,any2pcd"`)。需要宿主机 Go 1.27.4+
 (CI 经 `actions/setup-go` 提供)。离线升级可设 `ANY2PCD_SOURCE_DIR`
 指向本地新版源码目录(须含 `main.go` / `go.mod`)。

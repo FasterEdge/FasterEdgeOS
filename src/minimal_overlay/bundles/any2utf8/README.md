@@ -62,6 +62,6 @@ any2utf8 -from GBK -to gbk -output back.txt a.txt # 通用双向转换
 ## 构建
 
 随 `OVERLAY_BUNDLES` 启用(bundle 目录加入列表, 如
-`OVERLAY_BUNDLES="dhcp,fasteredgeos,any2utf8"`)。需要宿主机 Go 1.25+
+`OVERLAY_BUNDLES="dhcp,fasteredgeos,any2utf8"`)。需要宿主机 Go 1.27.4+
 (CI 经 `actions/setup-go` 提供)。离线升级可设 `ANY2UTF8_SOURCE_DIR`
 指向本地新版源码目录(须含 `main.go` / `go.mod` / `go.sum`)。

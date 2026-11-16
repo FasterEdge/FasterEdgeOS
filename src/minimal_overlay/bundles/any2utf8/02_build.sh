@@ -2,7 +2,7 @@
 # FasterEdge 开源项目 - Github: https://github.com/FasterEdge - Gitee: https://gitee.com/FasterEdge
 
 # 编译 any2utf8 静态二进制(免 CGO)。
-# 需要宿主机 Go 1.25+ 工具链: CI 使用 actions/setup-go 提供; 本地构建请先安装 Go。
+# 需要宿主机 Go 1.27.4+ 工具链: CI 使用 actions/setup-go 提供; 本地构建请先安装 Go。
 # 依赖 golang.org/x/text(纯 Go 编码实现), go.sum 已随源码预填
 # (哈希经 proxy.golang.org 实测); GOFLAGS=-mod=mod 允许有网络时自动补录。
 set -e
@@ -13,7 +13,7 @@ SRC=$OVERLAY_SOURCE_DIR/any2utf8
 OUT_DIR=$OVERLAY_WORK_DIR/$BUNDLE_NAME
 
 [ -d "$SRC" ] || { echo "错误: 缺少 any2utf8 源码(先执行 01_get.sh)"; exit 1; }
-command -v go >/dev/null 2>&1 || { echo "错误: 需要宿主机 Go 工具链(Go 1.25+)"; exit 1; }
+command -v go >/dev/null 2>&1 || { echo "错误: 需要宿主机 Go 工具链(Go 1.27.4+)"; exit 1; }
 
 rm -rf "${OVERLAY_WORK_DIR:?}/$BUNDLE_NAME"
 mkdir -p "$OUT_DIR"

@@ -2,7 +2,7 @@
 # FasterEdge 开源项目 - Github: https://github.com/FasterEdge - Gitee: https://gitee.com/FasterEdge
 
 # 编译 DontCrack-Manager 静态二进制(免 CGO)。
-# 需要宿主机 Go 1.25+ 工具链: CI 使用 actions/setup-go 提供; 本地构建请先安装 Go。
+# 需要宿主机 Go 1.27.4+ 工具链: CI 使用 actions/setup-go 提供; 本地构建请先安装 Go。
 set -e
 
 . ../../common.sh
