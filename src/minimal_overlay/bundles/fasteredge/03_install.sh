@@ -11,7 +11,7 @@ set -e
 . ../../common.sh
 
 BIN=$OVERLAY_WORK_DIR/$BUNDLE_NAME/fasteredge-demo
-BUNDLE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+BUNDLE_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 CFG=$OVERLAY_ROOTFS/etc/fasteredgeos/manager.yaml
 
 [ -x "$BIN" ] || { echo "错误: 缺少编译产物(先执行 02_build.sh)"; exit 1; }

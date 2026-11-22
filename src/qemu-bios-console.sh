@@ -13,8 +13,15 @@
 #
 # 在 nographic 模式下，qemu 会禁用虚拟控制台。要获得系统控制台，
 # 可以使用虚拟串口。在此模式下，虚拟串口默认重定向到宿主机 stdio。
-# 在内核命令行传入 "console=ttySn"（PC）或 "console=ttyAMAn"（ARM），
+# 在内核命令行传入 "console=ttySn"（PC）或 "console=ttyS0"/"console=ttyAMA0"（ARM/AArch64），
 # 其中 n 为 0、1、...。
+#
+# 用法:
+#   ./qemu-bios-console.sh       # 按 KERNEL_ARCH 选择 QEMU 目标(默认 x86_64)
+#   ./qemu-bios-console.sh -hdd  # 同时挂载虚拟硬盘 'hdd.img'
+#
+# 架构选择: 优先读 '.config' 的 KERNEL_ARCH, 与构建时的目标保持一致。
+# 此前本脚本只判断宿主 'uname -m', 无法启动 AArch64 产物。
 
 cat << CEOF
 
@@ -25,18 +32,38 @@ cat << CEOF
 
 CEOF
 
-if [ "`uname -m`" = "x86_64" ] ; then
-  ARCH="x86_64"
-else
-  ARCH="i386"
-fi
+SRC_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+cd "$SRC_DIR" || exit 1
+
+KERNEL_ARCH=$(grep -i '^KERNEL_ARCH=' .config | cut -f2- -d'=' | xargs)
+[ "$KERNEL_ARCH" = "" ] && KERNEL_ARCH=x86
+
+case "$KERNEL_ARCH" in
+  x86)
+    if [ "$(uname -m)" = "x86_64" ] ; then
+      ARCH="x86_64"
+    else
+      ARCH="i386"
+    fi
+    ;;
+  arm64)
+    ARCH="aarch64"
+    ;;
+  arm)
+    ARCH="arm"
+    ;;
+  *)
+    echo "无法识别的 KERNEL_ARCH='$KERNEL_ARCH'（可选 x86 / arm64 / arm）。" >&2
+    exit 1
+    ;;
+esac
 
 cmd="qemu-system-$ARCH -m 128M -cdrom fasteredgeos.iso -boot d -nographic"
 
-if [ "$1" = "-hdd" -o "$1" = "-h" ] ; then
-  echo "正在启动 QEMU（挂载 ISO 镜像与硬盘）。"
+if [ "$1" = "-hdd" ] || [ "$1" = "-h" ] ; then
+  echo "正在启动 QEMU（$ARCH，挂载 ISO 镜像与硬盘）。"
   echo 'console' | $cmd -hda hdd.img
 else
-  echo "正在启动 QEMU（挂载 ISO 镜像）。"
+  echo "正在启动 QEMU（$ARCH，挂载 ISO 镜像）。"
   echo 'console' | $cmd
 fi

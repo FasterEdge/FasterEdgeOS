@@ -1,4 +1,12 @@
 #!/bin/sh
+# 运行环境: 本脚本在 FasterEdgeOS 目标机上由 BusyBox ash(/bin/sh) 执行,
+# 不是 POSIX 参考 shell。下列 read 用法依赖 BusyBox ash 的扩展:
+#   read -t N      带超时读键(用于"等待 5 秒或任意按键")
+#   read -n1 -s    无回显读单字符
+# 它们是刻意保留的运行期行为(去掉会改变启动交互体验); shellcheck 按 POSIX
+# sh 判定 SC3045 / SC3061 在此不适用, 故只在保留的那几行加带理由的 disable,
+# 不在文件头整体关闭规则。彩色输出统一用 POSIX 的 printf '%b\n', 不依赖 echo -e。
+# shellcheck shell=sh
 
 # FasterEdgeOS 系统初始化序列：
 #
@@ -24,7 +32,7 @@
 #                    |
 #                    +--(2) /bin/sh (Alt + F4)
 
-echo -e "欢迎使用 FasterEdgeOS (/init)"
+printf '%b\n' "欢迎使用 FasterEdgeOS (/init)"
 
 # 挂载所有核心文件系统。
 /etc/01_prepare.sh
@@ -33,6 +41,8 @@ echo -e "欢迎使用 FasterEdgeOS (/init)"
 cat /etc/msg/init_01.txt
 
 # 等待 5 秒或任一按键。
+# BusyBox ash 支持 -t / -n1 / -s; 目标机固定 BusyBox, 保留交互行为。
+# shellcheck disable=SC3045,SC3061
 read -t 5 -n1 -s key
 
 if [ ! "$key" = "" ] ; then
@@ -49,9 +59,14 @@ fi
 # 在内存中创建新的挂载点，将其作为新的根目录，并与存储区域（如果存在
 # overlay 区域）做 overlay 合并。该操作会把脚本 '/etc/03_init.sh' 作为新的
 # init 进程调用。
+# exec 成功后本脚本不再返回; 若 exec 失败, 下面的报错与等待按键仍需执行,
+# 用于在屏幕上留下失败现场, 故保留 exec 形式。
+# shellcheck disable=SC2093
 exec /etc/02_overlay.sh
 
 echo "(/init) - 除非存在严重错误，否则你不应看到此行。"
 
 # 等待按键。
+# BusyBox ash 支持 -t / -n1 / -s; 目标机固定 BusyBox, 保留交互行为。
+# shellcheck disable=SC3045,SC3061
 read -n1 -s

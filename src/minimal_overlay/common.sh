@@ -5,14 +5,17 @@ set -e
 # 所有软件包共用的代码。应包含在每个软件包的
 # 每个 *.sh 文件的顶部。
 
-export SRC_DIR=`realpath --no-symlinks $PWD`
-export MAIN_SRC_DIR=`realpath --no-symlinks $SRC_DIR/../../../`
+SRC_DIR=$(realpath --no-symlinks "$PWD")
+export SRC_DIR
+MAIN_SRC_DIR=$(realpath --no-symlinks "$SRC_DIR"/../../../)
+export MAIN_SRC_DIR
 export WORK_DIR=$MAIN_SRC_DIR/work
 export SOURCE_DIR=$MAIN_SRC_DIR/source
 export OVERLAY_WORK_DIR=$WORK_DIR/overlay
 export OVERLAY_SOURCE_DIR=$SOURCE_DIR/overlay
 export OVERLAY_ROOTFS=$WORK_DIR/overlay_rootfs
-export BUNDLE_NAME=`basename $SRC_DIR`
+BUNDLE_NAME=$(basename "$SRC_DIR")
+export BUNDLE_NAME
 export DEST_DIR=$WORK_DIR/overlay/$BUNDLE_NAME/${BUNDLE_NAME}_installed
 export CONFIG=$MAIN_SRC_DIR/.config
 export SYSROOT=$WORK_DIR/sysroot
@@ -51,13 +54,21 @@ read_property() (
 )
 
 # 读取常用的配置属性。
-export JOB_FACTOR="`read_property JOB_FACTOR`"
-export CFLAGS="`read_property CFLAGS`"
-export NUM_CORES="$(grep ^processor /proc/cpuinfo | wc -l)"
+JOB_FACTOR=$(read_property JOB_FACTOR)
+export JOB_FACTOR
+CFLAGS=$(read_property CFLAGS)
+export CFLAGS
+NUM_CORES=$(getconf _NPROCESSORS_ONLN 2>/dev/null || grep -c ^processor /proc/cpuinfo 2>/dev/null || echo 1)
+export NUM_CORES
 
 # 计算 make "jobs" 的数量。可用环境变量 NUM_JOBS 覆盖
 # (CI/内存受限环境的稳定性: 并行任务过多可能 OOM/卡死)。
-export NUM_JOBS="${NUM_JOBS:-$((NUM_CORES * JOB_FACTOR))}"
+export NUM_JOBS
+NUM_JOBS="${NUM_JOBS:-$((NUM_CORES * JOB_FACTOR))}"
+
+# 可复现构建: SOURCE_DATE_EPOCH / KBUILD_BUILD_TIMESTAMP / TAR_REPRODUCIBLE
+# 等都由主链 common.sh 统一定义, 这里复用同一套取值, 避免两处漂移。
+. $MAIN_SRC_DIR/common.sh
 
 # 理想情况下，我们会在此处导出带 -j 等参数的 MAKE，让程序只需运行 $(MAKE) 而无需操心需要传递的额外标志
 # export MAKE="${MAKE-make} -j $NUM_JOBS"
@@ -68,7 +79,7 @@ download_source() (
 
   local=`read_property USE_LOCAL_SOURCE`
 
-  if [ "$local" = "true" -a ! -f "$file"  ] ; then
+  if [ "$local" = "true" ] && [ ! -f "$file" ] ; then
     echo "源文件 '$file' 不存在，将进行下载。"
     local=false
   fi
@@ -80,8 +91,8 @@ download_source() (
     # establish SSL connection", exit 4)视为 fatal 不重试, 因此这里用
     # shell 循环兜底: 无论 wget 因何失败都重试, 偶发网络/SSL 故障不会
     # 让整个 ~1 小时构建功亏一篑。与主链 src/common.sh 的 download_source
-    # 保持同一加固(重试 + sidecar 校验), 覆盖 adopt_openjdk/coreutils 等
-    # bundle 级源码下载(此前仅主链 01/03/06 有此防护)。
+    # 保持同一加固(重试 + 强制 sidecar 校验), 覆盖 adopt_openjdk/coreutils
+    # 等 bundle 级源码下载。
     attempt=1
     while [ "$attempt" -le 5 ] ; do
       if wget -O "$file" -c --timeout=30 --waitretry=5 "$url" ; then
@@ -96,10 +107,10 @@ download_source() (
       exit 1
     }
 
-    # 供应链完整性校验（可选但强烈建议）：
+    # 供应链完整性校验（强制，fail-closed）：
     # 在 'source/overlay' 目录放置 '<归档文件名>.sha256'（内容形如 "<hash>  <文件名>"），
-    # 则下载后强制校验；校验失败立即中止构建（fail-closed）。
-    # 若未提供 sidecar，则打印警告并继续（fail-open，兼容旧流程）。
+    # 则下载后强制校验；校验失败或 sidecar 缺失立即中止构建。
+    # 与主链 src/common.sh 的 download_source 保持同一策略: 不允许静默跳过校验。
     checksum_file="${file}.sha256"
     if [ -f "$checksum_file" ] ; then
       echo "正在校验 '$file' 的 SHA-256 校验和（$checksum_file）..."
@@ -108,8 +119,11 @@ download_source() (
         exit 1
       }
     else
-      echo "警告: 未找到 '$checksum_file'，跳过校验和验证。"
-      echo "      建议为固定版本源码提供 sidecar 校验和，防止供应链篡改。"
+      echo "错误: 未找到 '$checksum_file'，供应链校验 sidecar 缺失。" >&2
+      echo "      本仓库要求所有 overlay 源归档都必须提供 sha256 sidecar（fail-closed）。" >&2
+      echo "      生成方式: sha256sum <归档文件名> > '<归档文件名>.sha256'，" >&2
+      echo "      然后放入 'source/overlay' 目录并提交到版本库。" >&2
+      exit 1
     fi
   else
     echo "正在使用本地 overlay 源文件 '$file'。"

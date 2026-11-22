@@ -12,29 +12,29 @@ init() {
   rm -rf "${ISOIMAGE:?}"
 
   echo "正在准备新的 ISO 工作目录。"
-  mkdir -p $ISOIMAGE
+  mkdir -p "$ISOIMAGE"
 }
 
 prepare_fasteredgeos_bios() {
   # 这是存放传统 BIOS 启动产物的目录。
-  mkdir -p $ISOIMAGE/boot
+  mkdir -p "$ISOIMAGE/boot"
 
   # 复制内核。
-  cp $KERNEL_INSTALLED/kernel \
-    $ISOIMAGE/boot/kernel.xz
+  cp "$KERNEL_INSTALLED/kernel" \
+    "$ISOIMAGE/boot/kernel.xz"
 
   # 复制根文件系统。
-  cp $WORK_DIR/rootfs.cpio.xz \
-    $ISOIMAGE/boot/rootfs.xz
+  cp "$WORK_DIR/rootfs.cpio.xz" \
+    "$ISOIMAGE/boot/rootfs.xz"
 }
 
 prepare_overlay() {
   # 复制 overlay 内容（如果存在）。
-  if [ -d $ISOIMAGE_OVERLAY \
-    -a ! "`ls $ISOIMAGE_OVERLAY`" = "" ] ; then
+  if [ -d "$ISOIMAGE_OVERLAY" ] && \
+    [ -n "$(ls "$ISOIMAGE_OVERLAY")" ] ; then
 
     echo "ISO 镜像将包含 overlay 结构。"
-    cp -r $ISOIMAGE_OVERLAY/* $ISOIMAGE
+    cp -r "$ISOIMAGE_OVERLAY"/* "$ISOIMAGE"
   else
     echo "ISO 镜像将不包含 overlay 结构。"
   fi
@@ -48,11 +48,11 @@ prepare_boot_bios() {
   # 规范 2.2 第 3.1 节。根据系统配置的不同，即使支持 UEFI 也未必会进入
   # UEFI Shell。在这种情况下 FasterEdgeOS 将无法启动，并显示某种 UEFI
   # 错误信息。
-  cp -r $SRC_DIR/minimal_boot/bios/* \
-    $ISOIMAGE
+  cp -r "$SRC_DIR"/minimal_boot/bios/* \
+    "$ISOIMAGE"
 
   # 查找 Syslinux 构建目录。
-  set -- $WORK_DIR/syslinux/syslinux-*
+  set -- "$WORK_DIR"/syslinux/syslinux-*
 if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
   echo "目录缺失: $WORK_DIR/syslinux/syslinux-*，无法继续。"
   exit 1
@@ -61,17 +61,17 @@ WORK_SYSLINUX_DIR="$1"
 
   # 复制预编译文件 'isolinux.bin' 和 'ldlinux.c32'，它们用于传统 BIOS
   # 启动过程中的 Syslinux。
-  mkdir -p $ISOIMAGE/boot/syslinux
-  cp $WORK_SYSLINUX_DIR/bios/core/isolinux.bin \
-    $ISOIMAGE/boot/syslinux
-  cp $WORK_SYSLINUX_DIR/bios/com32/elflink/ldlinux/ldlinux.c32 \
-    $ISOIMAGE/boot/syslinux
+  mkdir -p "$ISOIMAGE/boot/syslinux"
+  cp "$WORK_SYSLINUX_DIR/bios/core/isolinux.bin" \
+    "$ISOIMAGE/boot/syslinux"
+  cp "$WORK_SYSLINUX_DIR/bios/com32/elflink/ldlinux/ldlinux.c32" \
+    "$ISOIMAGE/boot/syslinux"
 }
 
 # 依据 UEFI 规范 2.7 第 13.3.1.x 与 13.3.2.x 节生成 'El Torito' 启动镜像。
 prepare_boot_uefi() {
   # 根据 Busybox 可执行文件判断构建架构。
-  BUSYBOX_ARCH=$(file $ROOTFS/bin/busybox | cut -d' ' -f3)
+  BUSYBOX_ARCH=$(file "$ROOTFS/bin/busybox" | cut -d' ' -f3)
 
   # 确定合适的 UEFI 配置。默认镜像文件名参见 UEFI 规范 2.7 第 3.5.1.1 节。
   # 注意 x86_64 的 UEFI 镜像文件名中确实包含小写字母 'x'。
@@ -79,10 +79,10 @@ prepare_boot_uefi() {
   # 对无匹配/多匹配场景会产生字面量路径或参数过多, 此处显式解析并校验。
   if [ "$BUSYBOX_ARCH" = "64-bit" ] ; then
     FEOS_CONF=x86_64
-    set -- $WORK_DIR/systemd-boot/systemd-boot*/uefi_root/EFI/BOOT/BOOTx64.EFI
+    set -- "$WORK_DIR"/systemd-boot/systemd-boot*/uefi_root/EFI/BOOT/BOOTx64.EFI
   else
     FEOS_CONF=x86
-    set -- $WORK_DIR/systemd-boot/systemd-boot*/uefi_root/EFI/BOOT/BOOTIA32.EFI
+    set -- "$WORK_DIR"/systemd-boot/systemd-boot*/uefi_root/EFI/BOOT/BOOTIA32.EFI
   fi
   if [ "$#" -ne 1 ] || [ ! -f "$1" ] ; then
     echo "UEFI 引导加载器缺失: $WORK_DIR/systemd-boot/systemd-boot*/uefi_root/EFI/BOOT/ 下未找到目标 .EFI 文件。"
@@ -91,61 +91,72 @@ prepare_boot_uefi() {
   LOADER="$1"
 
   # 计算内核字节数。
-  kernel_size=`du -b $KERNEL_INSTALLED/kernel | awk '{print \$1}'`
+  kernel_size=$(du -b "$KERNEL_INSTALLED/kernel" | awk '{print $1}')
 
   # 计算 initramfs 字节数。
-  rootfs_size=`du -b $WORK_DIR/rootfs.cpio.xz | awk '{print \$1}'`
+  rootfs_size=$(du -b "$WORK_DIR/rootfs.cpio.xz" | awk '{print $1}')
 
-  loader_size=`du -b $LOADER | awk '{print \$1}'`
+  loader_size=$(du -b "$LOADER" | awk '{print $1}')
 
   # EFI 启动镜像比内核大 64KB。
   image_size=$((kernel_size + rootfs_size + loader_size + 65536))
 
   echo "正在创建 UEFI 启动镜像文件 '$WORK_DIR/uefi.img'。"
-  rm -f $WORK_DIR/uefi.img
-  truncate -s $image_size $WORK_DIR/uefi.img
+  rm -f "$WORK_DIR/uefi.img"
+  truncate -s "$image_size" "$WORK_DIR/uefi.img"
 
   echo "正在把磁盘镜像文件挂载到 loop 设备。"
   LOOP_DEVICE_HDD=$(losetup -f)
-  losetup $LOOP_DEVICE_HDD $WORK_DIR/uefi.img
+  losetup "$LOOP_DEVICE_HDD" "$WORK_DIR/uefi.img"
 
   echo "正在以 FAT 文件系统格式化磁盘镜像。"
-  mkfs.vfat $LOOP_DEVICE_HDD
+  # 可复现: 固定 volume ID 与卷标, 并用 --invariant 固定 FAT 内部的
+  # 创建时间(否则取构建时钟)。宿主 mkfs.vfat 过旧时退回 -i + 固定卷标,
+  # 并显式警告"该产物不满足字节级可复现", 不静默降级宣称。
+  if mkfs.vfat --help 2>&1 | grep -q -- '--invariant' ; then
+    SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH mkfs.vfat --invariant \
+      -n FASTEREDGEOS "$LOOP_DEVICE_HDD"
+  else
+    echo "警告: mkfs.vfat 不支持 --invariant, 退回固定 volume ID。" >&2
+    echo "      FAT 内部时间戳仍可能随构建时间变化, 该 UEFI 镜像不满足字节级可复现。" >&2
+    SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH mkfs.vfat \
+      -i "$FEOS_UEFI_FAT_VOLUME_ID" -n FASTEREDGEOS "$LOOP_DEVICE_HDD"
+  fi
 
   echo "正在准备 'uefi' 工作目录。"
   rm -rf "${WORK_DIR:?}"/uefi
-  mkdir -p $WORK_DIR/uefi
-  mount $WORK_DIR/uefi.img $WORK_DIR/uefi
+  mkdir -p "$WORK_DIR/uefi"
+  mount "$WORK_DIR/uefi.img" "$WORK_DIR/uefi"
 
 #  # 添加 UEFI 启动配置文件。
 #  cp -r $SRC_DIR/minimal_boot/uefi/* \
 #    $ISOIMAGE
 
   echo "正在准备内核与 rootfs。"
-  mkdir -p $WORK_DIR/uefi/fasteredgeos/$FEOS_CONF
-  cp $KERNEL_INSTALLED/kernel \
-    $WORK_DIR/uefi/fasteredgeos/$FEOS_CONF/kernel.xz
-  cp $WORK_DIR/rootfs.cpio.xz \
-    $WORK_DIR/uefi/fasteredgeos/$FEOS_CONF/rootfs.xz
+  mkdir -p "$WORK_DIR"/uefi/fasteredgeos/"$FEOS_CONF"
+  cp "$KERNEL_INSTALLED/kernel" \
+    "$WORK_DIR"/uefi/fasteredgeos/"$FEOS_CONF"/kernel.xz
+  cp "$WORK_DIR/rootfs.cpio.xz" \
+    "$WORK_DIR"/uefi/fasteredgeos/"$FEOS_CONF"/rootfs.xz
 
   echo "正在准备 'systemd-boot' UEFI 启动加载器。"
-  mkdir -p $WORK_DIR/uefi/EFI/BOOT
-  cp $LOADER \
-    $WORK_DIR/uefi/EFI/BOOT
+  mkdir -p "$WORK_DIR"/uefi/EFI/BOOT
+  cp "$LOADER" \
+    "$WORK_DIR"/uefi/EFI/BOOT
 
   echo "正在准备 'systemd-boot' 配置。"
-  mkdir -p $WORK_DIR/uefi/loader/entries
-  cp $SRC_DIR/minimal_boot/uefi/loader/loader.conf \
-    $WORK_DIR/uefi/loader
-  cp $SRC_DIR/minimal_boot/uefi/loader/entries/fasteredgeos-${FEOS_CONF}.conf \
-    $WORK_DIR/uefi/loader/entries
+  mkdir -p "$WORK_DIR"/uefi/loader/entries
+  cp "$SRC_DIR/minimal_boot/uefi/loader/loader.conf" \
+    "$WORK_DIR"/uefi/loader
+  cp "$SRC_DIR/minimal_boot/uefi/loader/entries/fasteredgeos-${FEOS_CONF}.conf" \
+    "$WORK_DIR"/uefi/loader/entries
 
   echo "正在设置默认 UEFI 启动项。"
-  sed -i "s|default.*|default fasteredgeos-$FEOS_CONF|" $WORK_DIR/uefi/loader/loader.conf
+  sed -i "s|default.*|default fasteredgeos-$FEOS_CONF|" "$WORK_DIR"/uefi/loader/loader.conf
 
   echo "正在卸载 UEFI 启动镜像文件。"
   sync
-  umount $WORK_DIR/uefi
+  umount "$WORK_DIR/uefi"
   sync
   sleep 1
 
@@ -153,11 +164,11 @@ prepare_boot_uefi() {
   rm -rf "${WORK_DIR:?}"/uefi
 
   # 确保 UEFI 启动镜像可读。
-  chmod ugo+r $WORK_DIR/uefi.img
+  chmod ugo+r "$WORK_DIR/uefi.img"
 
-  mkdir -p $ISOIMAGE/boot
-  cp $WORK_DIR/uefi.img \
-    $ISOIMAGE/boot
+  mkdir -p "$ISOIMAGE/boot"
+  cp "$WORK_DIR/uefi.img" \
+    "$ISOIMAGE/boot"
 }
 
 check_root() {
@@ -175,10 +186,10 @@ CEOF
 echo "*** 准备 ISO 开始 ***"
 
 # 从 '.config' 读取 'FIRMWARE_TYPE' 属性。
-FIRMWARE_TYPE=`read_property FIRMWARE_TYPE`
+FIRMWARE_TYPE=$(read_property FIRMWARE_TYPE)
 echo "固件类型为 '$FIRMWARE_TYPE'。"
 
-case $FIRMWARE_TYPE in
+case "$FIRMWARE_TYPE" in
   bios)
     init
     prepare_boot_bios

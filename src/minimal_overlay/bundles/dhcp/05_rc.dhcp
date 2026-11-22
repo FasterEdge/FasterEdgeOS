@@ -1,17 +1,21 @@
 #!/bin/sh
 
 # This script gets called by udhcpc to setup the network interfaces
+#
+# 运行环境: udhcpc 在脚本执行前把租约信息作为环境变量导出(interface/ip/mask/
+# router 等), 因此这些变量在本文件中没有赋值语句, 属于外部注入的输入。
+# shellcheck disable=SC2154
 
-ip addr add $ip/$mask dev $interface
+ip addr add "$ip/$mask" dev "$interface"
 
 if [ "$router" ]; then
-  ip route add default via $router dev $interface
+  ip route add default via "$router" dev "$interface"
 fi
 
 if [ "$ip" ]; then
-  echo -e "DHCP configuration for device $interface"
-  echo -e "IP:     \\e[1m$ip\\e[0m"
-  echo -e "mask:   \\e[1m$mask\\e[0m"
-  echo -e "router: \\e[1m$router\\e[0m"
+  # 用 POSIX 的 printf '%b' 代替非 POSIX 的 echo -e 输出 ANSI 加粗效果。
+  printf '%b\n' "DHCP configuration for device $interface"
+  printf '%b\n' "IP:     \033[1m$ip\033[0m"
+  printf '%b\n' "mask:   \033[1m$mask\033[0m"
+  printf '%b\n' "router: \033[1m$router\033[0m"
 fi
-

@@ -11,7 +11,7 @@ set -e
 
 DEST=$OVERLAY_SOURCE_DIR/any2utf8
 # 脚本自身所在目录(独立于 $SRC_DIR 语义, 兼容 common.sh 环境)。
-BUNDLE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+BUNDLE_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 
 if [ -n "${ANY2UTF8_SOURCE_DIR:-}" ] && [ -f "$ANY2UTF8_SOURCE_DIR/main.go" ] ; then
   echo "使用本地 any2utf8 源码: $ANY2UTF8_SOURCE_DIR"

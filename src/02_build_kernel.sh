@@ -9,7 +9,7 @@ set -e
 echo "*** 构建内核开始 ***"
 
 # 切换到 ls 找到的内核源码目录，例如 'linux-4.4.6'。
-set -- $WORK_DIR/kernel/linux-*
+set -- "$WORK_DIR"/kernel/linux-*
 if [ "$#" -ne 1 ] || [ ! -d "$1" ] ; then
   echo "目录缺失: $WORK_DIR/kernel/linux-*，无法继续。"
   exit 1
@@ -17,14 +17,68 @@ fi
 cd "$1"
 
 # 清理内核源码，包括配置文件。
+# 不传 ARCH: 'mrproper' 只做清理, 与架构无关; 显式传 ARCH 反而会让某些内核
+# 版本在交叉编译时提前解析工具链(无 CROSS_COMPILE 时报错), 这里保持原样。
 echo "正在准备内核工作区。"
-make mrproper -j $NUM_JOBS
+make mrproper -j "$NUM_JOBS"
 
 # 从 '.config' 读取 'USE_PREDEFINED_KERNEL_CONFIG' 属性
-USE_PREDEFINED_KERNEL_CONFIG=`read_property USE_PREDEFINED_KERNEL_CONFIG`
-BUILD_KERNEL_MODULES=`read_property BUILD_KERNEL_MODULES`
+USE_PREDEFINED_KERNEL_CONFIG=$(read_property USE_PREDEFINED_KERNEL_CONFIG)
+BUILD_KERNEL_MODULES=$(read_property BUILD_KERNEL_MODULES)
 
-if [ "$USE_PREDEFINED_KERNEL_CONFIG" = "true" -a ! -f $SRC_DIR/minimal_config/kernel.config ] ; then
+# ---------------------------------------------------------------------------
+# 内核目标架构参数化。
+#
+# 此前本脚本在编译与安装两处都硬编码 x86:
+#   make bzImage          -> 只对 x86 成立, arm64/arm 上是 'Image'/'zImage'
+#   cp arch/x86/boot/bzImage ...
+# 因此 README 宣称的 "x86/AArch64 构建基础" 并不成立。这里改为:
+#   * $KERNEL_ARCH 决定 ARCH= 与内核产物路径;
+#   * $CROSS_COMPILE 决定交叉工具链前缀(仅非空时传给内核 make);
+#   * 未知架构立刻 fail-closed, 不做"猜"。
+# ---------------------------------------------------------------------------
+KERNEL_ARCH=$(read_property KERNEL_ARCH)
+[ "$KERNEL_ARCH" = "" ] && KERNEL_ARCH=x86
+CROSS_COMPILE=$(read_property CROSS_COMPILE)
+
+# 内核 make 的公共参数。CROSS_COMPILE 为空时不传, 避免 Kernrel Makefile 收到
+# 空字符串前缀后仍去拼接命令(不同内核版本行为不一致)。
+KERNEL_MAKE_ARGS="ARCH=$KERNEL_ARCH"
+if [ ! "$CROSS_COMPILE" = "" ] ; then
+  KERNEL_MAKE_ARGS="$KERNEL_MAKE_ARGS CROSS_COMPILE=$CROSS_COMPILE"
+fi
+
+case "$KERNEL_ARCH" in
+  x86)
+    KERNEL_IMAGE_TARGET=bzImage
+    KERNEL_IMAGE_PATH=arch/x86/boot/bzImage
+    ;;
+  arm64)
+    KERNEL_IMAGE_TARGET=Image
+    KERNEL_IMAGE_PATH=arch/arm64/boot/Image
+    ;;
+  arm)
+    KERNEL_IMAGE_TARGET=zImage
+    KERNEL_IMAGE_PATH=arch/arm/boot/zImage
+    ;;
+  *)
+    echo "错误: 不支持的 KERNEL_ARCH='$KERNEL_ARCH'（可选 x86 / arm64 / arm）。" >&2
+    exit 1
+    ;;
+esac
+
+echo "内核目标架构: ARCH=$KERNEL_ARCH, CROSS_COMPILE='${CROSS_COMPILE}'"
+echo "内核产物: $KERNEL_IMAGE_PATH（make $KERNEL_IMAGE_TARGET）"
+
+if [ "$KERNEL_ARCH" = "arm64" ] && [ "$CROSS_COMPILE" = "" ] ; then
+  if [ "$(uname -m)" != "aarch64" ] ; then
+    echo "错误: 在 $(uname -m) 主机上构建 arm64 内核必须设置 CROSS_COMPILE" >&2
+    echo "      (例如 aarch64-linux-gnu-, 对应 apt 包 gcc-aarch64-linux-gnu)。" >&2
+    exit 1
+  fi
+fi
+
+if [ "$USE_PREDEFINED_KERNEL_CONFIG" = "true" ] && [ ! -f "$SRC_DIR/minimal_config/kernel.config" ] ; then
   echo "配置文件 '$SRC_DIR/minimal_config/kernel.config' 不存在。"
   USE_PREDEFINED_KERNEL_CONFIG=false
 fi
@@ -32,10 +86,11 @@ fi
 if [ "$USE_PREDEFINED_KERNEL_CONFIG" = "true" ] ; then
   # 使用内核的预定义配置文件。
   echo "正在使用配置文件 '$SRC_DIR/minimal_config/kernel.config'。"
-  cp -f $SRC_DIR/minimal_config/kernel.config .config
+  cp -f "$SRC_DIR/minimal_config/kernel.config" .config
 else
-  # 为内核创建默认配置文件。
-  make defconfig -j $NUM_JOBS
+  # 为内核创建默认配置文件。ARCH= 必须显式传入, 否则 defconfig 会按宿主架构
+  # 生成配置——在 x86 主机上交叉构建 arm64 时会静默产出 x86 配置。
+  make $KERNEL_MAKE_ARGS defconfig -j "$NUM_JOBS"
   echo "已生成默认内核配置。"
 
   # 设置 FasterEdgeOS 默认主机名。
@@ -76,7 +131,7 @@ else
   sed -i "s/.*CONFIG_FB_VESA.*/CONFIG_FB_VESA=y/" .config
 
   # 从 '.config' 读取 'USE_BOOT_LOGO' 属性
-  USE_BOOT_LOGO=`read_property USE_BOOT_LOGO`
+  USE_BOOT_LOGO=$(read_property USE_BOOT_LOGO)
 
   if [ "$USE_BOOT_LOGO" = "true" ] ; then
     sed -i "s/.*CONFIG_LOGO_LINUX_CLUT224.*/CONFIG_LOGO_LINUX_CLUT224=y/" .config
@@ -111,8 +166,8 @@ else
 
   # 6.6 已移除 RESET_ATTACK_MITIGATION / APPLE_PROPERTIES，不再设置。
 
-  # 检查是否在构建 64 位内核。
-  if [ "`grep "CONFIG_X86_64=y" .config`" = "CONFIG_X86_64=y" ] ; then
+  # 检查是否在构建 64 位 x86 内核（EFI 混合模式仅 x86_64 适用）。
+  if [ "$KERNEL_ARCH" = "x86" ] && grep -q "^CONFIG_X86_64=y" .config ; then
     # 构建 64 位内核时启用混合（mixed）EFI 模式。
     # 6.6 的 x86_64_defconfig 已默认 CONFIG_EFI_MIXED=y，这里仅补充缺失时追加，
     # 避免 .config 出现重复符号定义（否则 Kconfig 报 override 并可能进入交互确认）。
@@ -129,35 +184,43 @@ fi
 # （见上文 STACKPROTECTOR_STRONG / FORTIFY_SOURCE / SECURITY_DMESG_RESTRICT）。
 echo "正在构建内核。"
 make \
-  bzImage -j $NUM_JOBS
+  $KERNEL_MAKE_ARGS \
+  "$KERNEL_IMAGE_TARGET" -j "$NUM_JOBS"
 
 if [ "$BUILD_KERNEL_MODULES" = "true" ] ; then
   echo "正在构建内核模块。"
   make \
-    modules -j $NUM_JOBS
+    $KERNEL_MAKE_ARGS \
+    modules -j "$NUM_JOBS"
 fi
 
 # 准备内核安装区域。
 echo "正在移除旧的内核构建产物，这可能需要一些时间。"
 rm -rf "${KERNEL_INSTALLED:?}"
-mkdir $KERNEL_INSTALLED
+mkdir -p "$KERNEL_INSTALLED"
 
 echo "正在安装内核。"
-# 安装内核文件。
-cp arch/x86/boot/bzImage \
-  $KERNEL_INSTALLED/kernel
+# 安装内核文件（路径按 $KERNEL_ARCH 参数化，见脚本开头的架构表）。
+if [ ! -f "$KERNEL_IMAGE_PATH" ] ; then
+  echo "错误: 内核产物 '$KERNEL_IMAGE_PATH' 不存在，编译失败或架构配置不符。" >&2
+  exit 1
+fi
+cp "$KERNEL_IMAGE_PATH" \
+  "$KERNEL_INSTALLED/kernel"
 
 if [ "$BUILD_KERNEL_MODULES" = "true" ] ; then
-  make INSTALL_MOD_PATH=$KERNEL_INSTALLED \
-    modules_install -j $NUM_JOBS
+  make $KERNEL_MAKE_ARGS \
+    INSTALL_MOD_PATH="$KERNEL_INSTALLED" \
+    modules_install -j "$NUM_JOBS"
 fi
 
 # 安装内核头文件，稍后构建和配置 GNU C 库（glibc）时会用到。
 echo "正在生成内核头文件。"
 make \
-  INSTALL_HDR_PATH=$KERNEL_INSTALLED \
-  headers_install -j $NUM_JOBS
+  $KERNEL_MAKE_ARGS \
+  INSTALL_HDR_PATH="$KERNEL_INSTALLED" \
+  headers_install -j "$NUM_JOBS"
 
-cd $SRC_DIR
+cd "$SRC_DIR"
 
 echo "*** 构建内核结束 ***"

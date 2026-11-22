@@ -6,5 +6,5 @@ set -e
 
 for script in [0-9]*_*.sh; do
   echo "正在执行构建步骤: $script"
-  ./$script
+  ./"$script"
 done

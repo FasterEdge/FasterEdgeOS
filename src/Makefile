@@ -43,8 +43,9 @@ clean:
 		rm -f fasteredgeos.log ; \
 		USE_LOCAL_SOURCE=`grep -i ^USE_LOCAL_SOURCE= .config | cut -f2- -d'=' | xargs` ; \
 		if [ ! "$$USE_LOCAL_SOURCE" = "true" ] ; then \
-			echo "正在移除本地源码文件。" ; \
-			rm -rf source ; \
+			echo "正在移除本地源码文件（保留 sha256 sidecar）。" ; \
+			find source -type f ! -name '*.sha256' -delete 2>/dev/null || true ; \
+			find source -mindepth 1 -depth -type d -empty -delete 2>/dev/null || true ; \
 		else \
 			echo "保留本地源码。" ; \
 		fi ; \

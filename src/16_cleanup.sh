@@ -12,11 +12,11 @@ if [ "$(id -u)" = "0" ] ; then
   echo "正在把所有受影响文件的属主恢复为原始用户，可能需要一些时间。"
 
   # 查找原始用户。注意结果不一定总是正确。
-  ORIG_USER=`who | head -n 1 | awk '{print \$1}'`
+  ORIG_USER=$(who | head -n 1 | awk '{print $1}')
   echo "原始用户为 '$ORIG_USER'。"
 
   # 把所有受影响文件的属主恢复为原始属主。
-  chown -R $ORIG_USER:$ORIG_USER *
+  chown -R "$ORIG_USER:$ORIG_USER" ./*
 else
   echo "无需执行清理。"
 fi

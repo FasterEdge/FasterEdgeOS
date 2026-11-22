@@ -46,8 +46,9 @@ cp -r --remove-destination $DEST_DIR/* \
 
 # 准备 'tar.xz' 源码归档 - 开始。
 
-# 生成辅助变量。
-DATE_PARSED=`LANG=en_US ; date +"%d-%b-%Y"`
+# 生成辅助变量。归档名里的日期同样取自 SOURCE_DATE_EPOCH(而非构建当天),
+# 否则同一天之外重建会得到不同文件名, 破坏"两次构建字节一致"。
+DATE_PARSED=`LANG=en_US ; date -u -d "@$SOURCE_DATE_EPOCH" +"%d-%b-%Y"`
 ARCHIVE_PREFIX=fasteredgeos_
 ARCHIVE_DIR=${ARCHIVE_PREFIX}${DATE_PARSED}
 ARCHIVE_FILE=${ARCHIVE_DIR}_src.tar.xz
@@ -62,7 +63,10 @@ cp -r $DEST_DIR/usr/src \
 cd $WORK_DIR/overlay/$BUNDLE_NAME
 
 # 生成 'tar.xz' 源码归档。
-tar -cpf - $ARCHIVE_DIR | xz -9 - \
+# 可复现: $TAR_REPRODUCIBLE(排序 + 固定 mtime/owner) 由 common.sh 统一导出;
+# xz 固定单线程与 --check=crc32, 避免线程数影响输出。
+tar $TAR_REPRODUCIBLE -cpf - $ARCHIVE_DIR \
+  | xz -9 --check=crc32 --threads=1 - \
   > $WORK_DIR/overlay/$BUNDLE_NAME/$ARCHIVE_FILE
 
 # 准备 'tar.xz' 源码归档 - 结束。

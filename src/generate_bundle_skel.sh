@@ -1,14 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# shellcheck shell=bash
 # FasterEdge 开源项目 - Github: https://github.com/FasterEdge - Gitee: https://gitee.com/FasterEdge
 
 # 为新的 overlay 软件包生成基本模板
 
 # 重命名软件包和软件包版本变量，然后运行此脚本即可生成新的 overlay 模板
 
-package=test
-ver=2.1
+package="test"
+ver="2.1"
 
-packcaps=${package^^}
+packcaps=$(printf '%s' "$package" | tr '[:lower:]' '[:upper:]')
 
 echo "正在为 '$package' 生成新的 overlay 软件包模板。"
 

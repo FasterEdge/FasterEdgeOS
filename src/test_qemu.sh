@@ -28,7 +28,7 @@ CEOF
 qemu-system-x86_64 -m 256M -cdrom fasteredgeos.iso -boot d -localtime -nographic &
 
 sleep 5
-if [ "`ps -ef | grep -i [q]emu-system`" = "" ] ; then
+if [ "`ps -ef | grep -i "[q]emu-system"`" = "" ] ; then
   echo "`date` | !!! 失败 !!! FasterEdgeOS 未在 QEMU 中运行。"
   exit 1
 else
@@ -38,14 +38,14 @@ fi
 RETRY=10
 while [ ! "$RETRY" = "0" ] ; do
   echo "`date` | 倒计时：$RETRY"
-  if [ "`ps -ef | grep -i [q]emu-system`" = "" ] ; then
+  if [ "`ps -ef | grep -i "[q]emu-system"`" = "" ] ; then
     break
   fi
   sleep 30
   RETRY=$(($RETRY - 1))
 done
 
-if [ "`ps -ef | grep -i [q]emu-system`" = "" ] ; then
+if [ "`ps -ef | grep -i "[q]emu-system"`" = "" ] ; then
   echo "`date` | FasterEdgeOS 未在 QEMU 中运行。"
 else
   echo "`date` | !!! 失败 !!! FasterEdgeOS 仍在 QEMU 中运行。"

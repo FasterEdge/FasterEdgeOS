@@ -5,12 +5,12 @@ set -e
 
 # 创建可供 QEMU 使用的 20MB 稀疏文件。
 
-if [ "$1" = "-e" -o "$1" = "--empty" ] ; then
+if [ "$1" = "-e" ] || [ "$1" = "--empty" ] ; then
   # 创建新的硬盘镜像文件。
   rm -f hdd.img
   truncate -s 20M hdd.img
   echo "已创建 20MB 大小的硬盘镜像文件 'hdd.img'。"
-elif [ "$1" = "-f" -o "$1" = "--folder" ] ; then
+elif [ "$1" = "-f" ] || [ "$1" = "--folder" ] ; then
   if [ ! "$(id -u)" = "0" ] ; then
     echo "使用 '-f'（或 '--folder'）选项需要 root 权限。"
     exit 1
@@ -51,7 +51,7 @@ elif [ "$1" = "-f" -o "$1" = "--folder" ] ; then
   ORIG_USER=`who | awk '{print \$1}'`
   chown $ORIG_USER hdd.img
   echo "已将硬盘镜像文件的属主还原为原始用户。"
-elif [ "$1" = "-s" -o "$1" = "--sparse" ] ; then
+elif [ "$1" = "-s" ] || [ "$1" = "--sparse" ] ; then
   if [ ! "$(id -u)" = "0" ] ; then
     echo "使用 '-s'（或 '--sparse'）选项需要 root 权限。"
     exit 1
@@ -125,7 +125,7 @@ elif [ "$1" = "-s" -o "$1" = "--sparse" ] ; then
   chown $ORIG_USER hdd.img
 
   echo "已将硬盘镜像文件的属主还原为原始用户。"
-elif [ "$1" = "-h" -o "$1" = "--help" ] ; then
+elif [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
   cat << CEOF
   用法: $0 [选项]
   本工具生成 20MB 稀疏文件 'hdd.img'，可作为 QEMU 磁盘镜像使用，

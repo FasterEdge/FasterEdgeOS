@@ -12,7 +12,7 @@ PIP_PACKAGES=`read_property PIP_INSTALL_PACKAGES`
 
 if [ "$INSTALL_PIP" = "true" ] ; then
   echo "正在安装 pip 软件包。"
-  for package in ${PIP_PACKAGES//,/ }
+  for package in $(echo "$PIP_PACKAGES" | tr ',' ' ')
   do 
     echo "正在安装软件包 '$package'。"
 

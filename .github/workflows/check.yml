@@ -7,26 +7,33 @@ permissions:
   contents: read
 jobs:
   syntax:
-    name: 'sh -n + shellcheck'
+    name: '静态检查(shell + yaml/json)'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: 'sh -n 全部脚本'
+    - name: '安装 shellcheck / node'
       run: |
         set -e
-        SCRIPTS=$(find .github src -name '*.sh' -type f | grep -v '/work/' | grep -v '/source/' || true)
-        [ -n "$SCRIPTS" ] || { echo "no scripts found"; exit 0; }
-        for f in $SCRIPTS; do sh -n "$f"; done
-        echo "checked $(echo "$SCRIPTS" | wc -l) scripts (syntax OK)"
-    - name: 'shellcheck(风格项不阻塞)'
+        sudo apt-get update -qq
+        sudo apt-get install -y shellcheck
+        node --version
+    - name: 'scripts/lint.sh (bash -n + sh -n + shellcheck + yaml/json)'
       run: |
-        if command -v shellcheck >/dev/null 2>&1; then
-          SCRIPTS=$(find .github src -name '*.sh' -type f | grep -v '/work/' | grep -v '/source/' || true)
-          shellcheck -s sh $SCRIPTS || true
-          echo "shellcheck done (style-only warnings tolerated)"
-        else
-          echo "shellcheck not installed, skipped"
-        fi
+        set -e
+        bash scripts/lint.sh
+  reproducible:
+    name: '可复现构建与供应链自检'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: 'src/test_reproducible.sh (可复现 + sidecar 覆盖率)'
+      run: |
+        set -e
+        cd src
+        sh ./test_reproducible.sh
+    # 说明: 该自检只覆盖"静态可验证"的部分(语法、SOURCE_DATE_EPOCH 取值、
+    # tar/gzip 字节一致、sidecar 覆盖率、KERNEL_ARCH 参数化)。
+    # 完整的 ISO/镜像端到端字节一致需要 ~1 小时构建, 由 manual.yml 产出, 不在本门禁内。
   any2utf8:
     name: 'any2utf8 go 编译'
     runs-on: ubuntu-latest
