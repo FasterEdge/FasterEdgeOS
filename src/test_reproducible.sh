@@ -61,22 +61,23 @@ done < "$T/shell_scripts.txt"
 echo
 echo "[2] SOURCE_DATE_EPOCH / TAR_REPRODUCIBLE / 固定 UUID"
 # ---------------------------------------------------------------------------
-# 在子进程里回读变量, 同时验证 common.sh 的 export: 打包工具
-# (tar/gzip/xz/cpio/mkfs/xorriso) 都是在子进程里读这些环境变量的。
-PROBE=$(cd "$SRC_DIR" \
-  && SOURCE_DATE_EPOCH=1700000000 . ./common.sh >/dev/null 2>&1 \
-  && sh -c 'echo "SDE=$SOURCE_DATE_EPOCH"
-             echo "TAR=$TAR_REPRODUCIBLE"
-             echo "BS=$KBUILD_BUILD_TIMESTAMP"
-             echo "TZ=$TZ"
-             echo "UUID=$FEOS_OVERLAY_FS_UUID"
-             echo "FATID=$FEOS_UEFI_FAT_VOLUME_ID"')
-SDE=$(printf '%s\n' "$PROBE" | sed -n 's/^SDE=//p')
-TAROPT=$(printf '%s\n' "$PROBE" | sed -n 's/^TAR=//p')
-BS=$(printf '%s\n' "$PROBE" | sed -n 's/^BS=//p')
-TZVAL=$(printf '%s\n' "$PROBE" | sed -n 's/^TZ=//p')
-UUID=$(printf '%s\n' "$PROBE" | sed -n 's/^UUID=//p')
-FATID=$(printf '%s\n' "$PROBE" | sed -n 's/^FATID=//p')
+# 回读变量的方式是 exec env: 输出的就是进程环境, 因此只有真正 export 出去
+# 的变量才会出现, 打包工具 (tar/gzip/xz/cpio/mkfs/xorriso) 看到的正是这份环境。
+# 注意不要写成 `SOURCE_DATE_EPOCH=1700000000 . ./common.sh`: 前缀赋值对内建
+# 命令 `.` 只在命令执行期间生效, bash 会在 source 返回后还原, 而 POSIX sh /
+# dash 会保留, 于是同一份脚本在两种 shell 下结论相反。这里显式赋值后由
+# common.sh 自己 export, 与 shell 实现无关。
+ENVDUMP=$(cd "$SRC_DIR" \
+  && sh -c 'unset SOURCE_DATE_EPOCH
+             SOURCE_DATE_EPOCH=1700000000
+             . ./common.sh >/dev/null 2>&1 || exit 1
+             exec env')
+SDE=$(printf '%s\n' "$ENVDUMP" | sed -n 's/^SOURCE_DATE_EPOCH=//p')
+TAROPT=$(printf '%s\n' "$ENVDUMP" | sed -n 's/^TAR_REPRODUCIBLE=//p')
+BS=$(printf '%s\n' "$ENVDUMP" | sed -n 's/^KBUILD_BUILD_TIMESTAMP=//p')
+TZVAL=$(printf '%s\n' "$ENVDUMP" | sed -n 's/^TZ=//p')
+UUID=$(printf '%s\n' "$ENVDUMP" | sed -n 's/^FEOS_OVERLAY_FS_UUID=//p')
+FATID=$(printf '%s\n' "$ENVDUMP" | sed -n 's/^FEOS_UEFI_FAT_VOLUME_ID=//p')
 
 [ "$SDE" = "1700000000" ] || fail "SOURCE_DATE_EPOCH 未透传到子进程(得到 '$SDE')"
 [ "$BS" = "@1700000000" ] || fail "KBUILD_BUILD_TIMESTAMP 未设置(得到 '$BS')"

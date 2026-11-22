@@ -19,6 +19,24 @@ cp -r "$BUSYBOX_INSTALLED" "$ROOTFS"
 # 将所有 rootfs 资源复制到 'rootfs' 文件夹。
 cp -r "$SRC_DIR"/minimal_rootfs/* "$ROOTFS"
 
+# 版本号单一来源: 仓库根目录的 'VERSION' 文件。'os-release' 里的 VERSION /
+# VERSION_ID / PRETTY_NAME 全部由它当场渲染, 不在此处手写第二份版本号
+# (改版本只改 'VERSION' 一个文件)。
+FEOS_VERSION=$(tr -d '\r' < "$SRC_DIR/../VERSION" 2>/dev/null | xargs)
+if [ "$FEOS_VERSION" = "" ] ; then
+  echo "错误: 无法从 '$(cd "$SRC_DIR/.." && pwd)/VERSION' 读取版本号。"
+  exit 1
+fi
+OS_RELEASE="$ROOTFS/etc/os-release"
+if [ ! -f "$OS_RELEASE" ] ; then
+  echo "错误: 缺少 $OS_RELEASE 模板。"
+  exit 1
+fi
+sed -i "s|^VERSION_ID=.*|VERSION_ID=\"$FEOS_VERSION\"|" "$OS_RELEASE"
+sed -i "s|^VERSION=.*|VERSION=\"$FEOS_VERSION\"|" "$OS_RELEASE"
+sed -i "s|^PRETTY_NAME=.*|PRETTY_NAME=\"FasterEdgeOS $FEOS_VERSION\"|" "$OS_RELEASE"
+echo "os-release 版本号: $FEOS_VERSION（来自 VERSION 文件）"
+
 # 删除 '.keep' 文件，我们用它们来跟踪原本为空的文件夹。
 find "$ROOTFS"/* -type f -name '.keep' -exec rm {} +
 
