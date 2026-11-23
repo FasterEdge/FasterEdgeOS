@@ -37,7 +37,7 @@ const maxFields = 16
 var fieldNameRe = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 // version 与 FasterEdge 版本链一致的语义化版本。
-const version = "1.0.20261123"
+const version = "1.0.20261124"
 
 // Field 描述输出 PCD 的一个字段。
 type Field struct {
@@ -364,8 +364,10 @@ func readPCD(data []byte) (names []string, rows [][]float64, err error) {
 	body := data[bodyStart:]
 	if binaryMode {
 		per := n * 4
-		if per == 0 || len(body) < per*count {
-			return nil, nil, fmt.Errorf("PCD binary body 大小不足: 需要 %d 字节, 实得 %d", per*count, len(body))
+		// 用除法比较代替 per*count 乘法: 恶意 POINTS 超大(如 10^18)会使 per*count
+		// 整数溢出为负, 绕过大小检查后越界读 body 触发 panic。
+		if per == 0 || count > len(body)/per {
+			return nil, nil, fmt.Errorf("PCD binary body 大小不足: 每点 %d 字节 × %d 点, 实得 %d 字节", per, count, len(body))
 		}
 		buf := make([]byte, 4)
 		for i := 0; i < count; i++ {
@@ -608,6 +610,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	fs.Usage = func() { usage(fs) }
 
 	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return 0
+		}
 		return 2
 	}
 	if opts.showVer {

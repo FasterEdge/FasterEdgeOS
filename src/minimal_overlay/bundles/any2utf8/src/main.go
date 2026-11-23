@@ -35,7 +35,7 @@ import (
 const progName = "any2utf8"
 
 // version 与 FasterEdge 版本链一致的语义化版本。
-const version = "1.0.20261123"
+const version = "1.0.20261124"
 
 // nameAliases 常用名别名 → IANA 注册名(大小写不敏感)。
 var nameAliases = map[string]string{
@@ -280,7 +280,9 @@ func listEncodings(w io.Writer) {
 }
 
 // convertReader 将 r 按 enc 解码后写入 w(流式)。
-// x/text 解码器对非法字节序列返回错误(不静默替换), 转换失败即退出(fail-closed)。
+// 注意: x/text 的 GBK/GB18030/UTF-16 等解码器对非法字节序列、截断多字节字符、
+// 未配对代理项均以 U+FFFD 替换且不返回错误, 故本函数不会因非法输入报错;
+// 调用方如需 fail-closed 语义须自行检测 U+FFFD(见 convertStrict)。
 func convertReader(r io.Reader, w io.Writer, enc encoding.Encoding) error {
 	if enc == nil {
 		_, err := io.Copy(w, r)
@@ -462,9 +464,21 @@ func main() {
 				os.Exit(1)
 			}
 		} else {
-			data, err = os.ReadFile(path)
+			// 与 stdin 一致施加 1GiB 上限: 旧实现 os.ReadFile 无上限, 对超大文件
+			// 或 /dev/zero 等特殊文件会无限读取直至 OOM(本地 DoS)。
+			f, err := os.Open(path)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "%s: %v\n", progName, err)
+				os.Exit(1)
+			}
+			data, err = io.ReadAll(io.LimitReader(f, 1<<30+1)) // 1GiB+1 上限, 超限可检出
+			_ = f.Close()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "%s: 读取 %s 失败: %v\n", progName, path, err)
+				os.Exit(1)
+			}
+			if len(data) > 1<<30 {
+				fmt.Fprintf(os.Stderr, "%s: %s 超过 1GiB 上限, 拒绝处理\n", progName, path)
 				os.Exit(1)
 			}
 		}
@@ -507,6 +521,12 @@ func main() {
 			if err := bw.Flush(); err != nil {
 				fmt.Fprintf(os.Stderr, "%s: %s: 转换失败: %v\n", progName, path, err)
 				os.Exit(1)
+			}
+			// x/text 解码器对非法序列静默替换为 U+FFFD(不报错): 非 strict 模式
+			// 下检测并告警, 避免静默损坏数据(fail-closed 精神); 仍允许继续输出,
+			// 如需强制失败请用 -strict。
+			if srcEnc != nil && bytes.Contains(buf.Bytes(), []byte{0xEF, 0xBF, 0xBD}) {
+				fmt.Fprintf(os.Stderr, "%s: %s: 警告: 解码结果含替换字符(U+FFFD), 源编码判定可能错误(试试 -from 显式指定或 -strict 强制失败)\n", progName, path)
 			}
 			out, err = encodeTo(buf.Bytes(), toEnc)
 			if err != nil {

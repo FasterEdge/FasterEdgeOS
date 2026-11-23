@@ -364,6 +364,13 @@ func TestVersionFlag(t *testing.T) {
 	}
 }
 
+func TestHelpFlag(t *testing.T) {
+	code, _ := runCLI(t, nil, "-h")
+	if code != 0 {
+		t.Fatalf("-h 退出码 = %d, 期望 0", code)
+	}
+}
+
 func TestFieldsMismatchText(t *testing.T) {
 	_, err := loadPoints("text", []byte("1 2 3\n"), "t.txt", &options{fields: "x,y,z,intensity"})
 	if err == nil {

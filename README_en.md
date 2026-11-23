@@ -50,8 +50,8 @@ After boot, the system provides a minimal shell, basic networking and configured
 
 A Debian or Ubuntu Linux build host is recommended. On macOS or Windows, use a Linux virtual machine or CI.
 
-- **GitHub Actions**: `.github/workflows/manual.yml` can be triggered manually from the GitHub Actions page, or automatically by pushing a `v*` tag such as `v1.0.20261123`.
-- **Single source of truth for the version**: the system version comes from the repository-root `VERSION` file (currently `1.0.20261123`). During the build, `src/09_generate_rootfs.sh` renders `src/minimal_rootfs/etc/os-release` (`VERSION`, `VERSION_ID`, `PRETTY_NAME`) from that file and exits with an error if it cannot be read; no second copy of the version string is maintained. Any remaining `1.0.20261116` in the repository is the previous release line, not the current artefact. **To bump the version, edit that one file.**
+- **GitHub Actions**: `.github/workflows/manual.yml` can be triggered manually from the GitHub Actions page, or automatically by pushing a `v*` tag such as `v1.0.20261124`.
+- **Single source of truth for the version**: the system version comes from the repository-root `VERSION` file (currently `1.0.20261124`). During the build, `src/09_generate_rootfs.sh` renders `src/minimal_rootfs/etc/os-release` (`VERSION`, `VERSION_ID`, `PRETTY_NAME`) from that file and exits with an error if it cannot be read; no second copy of the version string is maintained. Any remaining `1.0.20261116` in the repository is the previous release line, not the current artefact. **To bump the version, edit that one file.**
 - **Workflow split**:
 
   | Workflow | Triggers | What it actually does |

@@ -64,6 +64,6 @@ wget -q -O - --header="Authorization: Bearer <token>" \
 随 OVERLAY_BUNDLES 启用(bundle 目录加入列表, 如
 OVERLAY_BUNDLES="dhcp,fasteredgeos,fasteredge2api")。需要宿主机 Go 1.27.4+
 (CI 经 actions/setup-go 提供; go.mod 依赖已发布的 github.com/FasterEdge/FasterEdge
-v1.0.20261116 与 golang.org/x/sys, 经 goproxy 解析)。源码固定到已由 CI 验证的
-commit(默认 3bffd4d..., 对应 v1.0.20261116 线); 离线升级可设 FE2A_SOURCE_DIR
+v1.0.20261124 与 golang.org/x/sys, 经 goproxy 解析)。源码固定到已由 CI 验证的
+commit(默认 24b9b0b..., 对应 v1.0.20261124 线); 离线升级可设 FE2A_SOURCE_DIR
 指向本地 FasterEdge2Api 仓(须含 go.mod), 或以 FE2A_COMMIT 覆盖固定 commit。

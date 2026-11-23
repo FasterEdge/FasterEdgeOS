@@ -51,5 +51,5 @@ wget -q -O - http://127.0.0.1:11884/status
 OVERLAY_BUNDLES="dhcp,fasteredgeos,fasteredge")。需要宿主机 Go 1.27.4+
 (CI 经 actions/setup-go 提供; examples/demo 为独立 module, 依赖 beevik/ntp、
 x/net、x/sys, 经 goproxy 解析)。源码固定到已由 CI 验证的 commit(默认
-2996451..., 对应 v1.0.20261116 线); 离线升级可设 FE_SOURCE_DIR 指向本地
+56e1ad1..., 对应 v1.0.20261124 线); 离线升级可设 FE_SOURCE_DIR 指向本地
 FasterEdge 仓(须含 go.mod), 或以 FE_COMMIT 覆盖固定 commit。

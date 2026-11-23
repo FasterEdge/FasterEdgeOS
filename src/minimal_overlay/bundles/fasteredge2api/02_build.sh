@@ -2,7 +2,7 @@
 # FasterEdge 开源项目 - Github: https://github.com/FasterEdge - Gitee: https://gitee.com/FasterEdge
 
 # 编译 FasterEdge2Api 静态二进制(免 CGO): 可运行入口 cmd/fasteredge2api。
-# go.mod 依赖已发布的 github.com/FasterEdge/FasterEdge v1.0.20261116 与
+# go.mod 依赖已发布的 github.com/FasterEdge/FasterEdge v1.0.20261124 与
 # golang.org/x/sys(经 goproxy 解析; go.sum 已随源码提交)。
 # 需要宿主机 Go 1.27.4+ 工具链: CI 使用 actions/setup-go 提供; 本地构建请先安装 Go。
 set -e

@@ -54,12 +54,12 @@ FasterEdgeOS ISO / rootfs 镜像
 
 > **使用 GitHub Actions 自动构建**：仓库内置 `.github/workflows/manual.yml`，
 > 可在 GitHub 页面手动触发（Actions → Run workflow），或在推送 `v*` 标签
-> （如 `v1.0.20261123`）时自动构建。构建完成后会以 artifact 形式交付
+> （如 `v1.0.20261124`）时自动构建。构建完成后会以 artifact 形式交付
 > `fasteredgeos.iso` 与 `fasteredgeos_image.tgz`（Docker 镜像，`docker import`
 > 即可使用），保留 14 天。
 
 > **版本号单一来源**：系统版本号来自仓库根目录的 `VERSION` 文件（当前
-> `1.0.20261123`），不由脚本或 rootfs 模板另行维护。构建阶段
+> `1.0.20261124`），不由脚本或 rootfs 模板另行维护。构建阶段
 > `src/09_generate_rootfs.sh` 会用该文件当场渲染 `src/minimal_rootfs/etc/os-release`
 > 的 `VERSION` / `VERSION_ID` / `PRETTY_NAME`；`VERSION` 文件缺失或读不出内容时
 > 该阶段直接报错退出。仓库内还查得到的 `1.0.20261116` 是上一轮版本号，属历史
@@ -238,7 +238,7 @@ OVERLAY_BUNDLES=dhcp,fasteredgeos,fasteredge,any2pcd,any2utf8,fasteredge2api,mll
 - **any2utf8**：文本/文件编码转换工具（内置 GBK / GB18030 / Big5 / Shift_JIS / UTF-16 等常见编码，不依赖系统 iconv 与 locale）。
 ```
 
-其中 `fasteredge2api` / `any2pcd` / `any2utf8` 支持版本查询（当前 `1.0.20261123`，与根目录 `VERSION` 文件一致）；离线升级可设置 `FE_SOURCE_DIR` / `FE2A_SOURCE_DIR` / `ANY2PCD_SOURCE_DIR` / `ANY2UTF8_SOURCE_DIR` 指向本地新版源码目录，构建时优先使用指定源码。详见各自 bundle 目录下的 `README.md`。
+其中 `fasteredge2api` / `any2pcd` / `any2utf8` 支持版本查询（当前 `1.0.20261124`，与根目录 `VERSION` 文件一致）；离线升级可设置 `FE_SOURCE_DIR` / `FE2A_SOURCE_DIR` / `ANY2PCD_SOURCE_DIR` / `ANY2UTF8_SOURCE_DIR` 指向本地新版源码目录，构建时优先使用指定源码。详见各自 bundle 目录下的 `README.md`。
 
 服务管理采用 BusyBox init 兼容方式，不依赖 systemd：
 

@@ -7,9 +7,9 @@ set -e
 
 . ../../common.sh
 
-# 固定的 FasterEdge2Api commit: 随上游修复演进手动更新(当前为 v1.0.20261116 线,
+# 固定的 FasterEdge2Api commit: 随上游修复演进手动更新(当前为 v1.0.20261124 线,
 # 对齐 go.mod 的 go 1.27.4 与 Docker golang:1.27.4 构建镜像)。
-FE2A_COMMIT=${FE2A_COMMIT:-3bffd4d8e95a17ac4a83441e8df458b6c8b0f398}
+FE2A_COMMIT=${FE2A_COMMIT:-24b9b0bb9ef5d0e1b0e0a876ee664a7ba2bc34dc}
 DEST_DIR=$OVERLAY_SOURCE_DIR/FasterEdge2Api
 REPO_URL=https://github.com/FasterEdge/FasterEdge2Api.git
 
@@ -47,5 +47,5 @@ else
 fi
 
 # cmd/fasteredge2api 是可运行入口; go.mod 依赖已发布的 github.com/FasterEdge/FasterEdge
-# v1.0.20261116(经 goproxy 解析, go.sum 已随源码提交), 无 replace。
+# v1.0.20261124(经 goproxy 解析, go.sum 已随源码提交), 无 replace。
 [ -f "$DEST_DIR/cmd/fasteredge2api/main.go" ] || { echo "错误: 源码缺少 cmd/fasteredge2api/main.go"; exit 1; }
