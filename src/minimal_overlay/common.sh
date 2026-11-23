@@ -5,10 +5,28 @@ set -e
 # 所有软件包共用的代码。应包含在每个软件包的
 # 每个 *.sh 文件的顶部。
 
-SRC_DIR=$(realpath --no-symlinks "$PWD")
+# 目录锚点: 以**调用者脚本自身位置**为准, 不用当前工作目录。
+#
+# 历史实现是 `realpath --no-symlinks "$PWD"/../../../`。它把"当前工作目录"
+# 当锚点, 并且依赖那一版 coreutils 对 `..` 的规范化行为。CI 上实测这条推导
+# 给出了 `bundles/<name>` 而不是 `src` —— 后果是 03_install.sh 把产物装进
+# `bundles/<name>/work/overlay_rootfs`, 打印"已安装", 而 workflow 在正确路径
+# `src/work/overlay_rootfs` 上 `test -x` 失败, 报错信息完全指不到这里。
+#
+# 改为: 调用者的目录就是 bundle 目录(overlay_build.sh 以绝对路径执行
+# bundles/<name>/bundle.sh), 再用 POSIX 的 cd + pwd -P 向上求物理路径。
+# cd/pwd 的行为在所有 sh 上一致, 不依赖 realpath 的版本差异。
+# 推导完再做一次结构校验 —— 错了就当场报错, 而不是悄悄装到错地方。
+_CALLER_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)
+SRC_DIR=$_CALLER_DIR
 export SRC_DIR
-MAIN_SRC_DIR=$(realpath --no-symlinks "$SRC_DIR"/../../../)
+MAIN_SRC_DIR=$(CDPATH='' cd -- "$SRC_DIR/../../.." && pwd -P)
 export MAIN_SRC_DIR
+# minimal_overlay 的 bundle 恒位于 <主源码>/minimal_overlay/bundles/<name>。
+if [ ! -d "$MAIN_SRC_DIR/minimal_overlay" ] ; then
+  echo "错误: 无法从 '$SRC_DIR' 推导主源码目录(得到 '$MAIN_SRC_DIR'), 该目录下没有 minimal_overlay。" >&2
+  exit 1
+fi
 export WORK_DIR=$MAIN_SRC_DIR/work
 export SOURCE_DIR=$MAIN_SRC_DIR/source
 export OVERLAY_WORK_DIR=$WORK_DIR/overlay

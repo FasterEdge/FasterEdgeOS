@@ -3,18 +3,39 @@
 
 set -e
 
-# 以下变量均显式 export: 各阶段脚本(01_*~16_*)通过 ". ./common.sh" 加载后使用,
-# 对 shellcheck 单文件分析而言属于"外部引用"(SC2034)。
-export SRC_DIR="$PWD"
-export CONFIG="$SRC_DIR/.config"
-export SOURCE_DIR="$SRC_DIR/source"
-export WORK_DIR="$SRC_DIR/work"
+# 目录锚点。两种加载方式都要正确:
+#   1. 主链脚本 `. ./common.sh`(在 src/ 下运行) —— 锚点即 src/;
+#   2. overlay bundle 的 `minimal_overlay/common.sh` 再 source 本文件 —— 此时
+#      外层已经算好 MAIN_SRC_DIR(就是 src/), 绝不能用 $PWD 覆盖它。
+#
+# 历史实现无条件写 `SRC_DIR="$PWD"`, 于是第 2 种加载方式下 $PWD 是
+# `minimal_overlay/bundles/<name>`, SRC_DIR / WORK_DIR / OVERLAY_ROOTFS 全被
+# 改写成 bundle 目录下的子路径。后果: bundle 把产物装进
+# `bundles/<name>/work/overlay_rootfs` 并打印"已安装", 而 workflow 在
+# `src/work/overlay_rootfs` 上 `test -x` 失败 —— 报错信息指不到这里。
+#
+# 因此: 已被外层定义 MAIN_SRC_DIR 时, 目录锚点一律取 MAIN_SRC_DIR, 绝不读 $PWD;
+# 外层自己的 SRC_DIR(bundle 目录)保持不动 —— bundle 脚本靠 `cd $SRC_DIR` 回到
+# 自己的目录, 覆盖它会把后续 cp/mv 的源路径指错。
+if [ -n "${MAIN_SRC_DIR:-}" ] ; then
+  # overlay bundle 路径: 锚点是主源码目录, 不覆盖外层的 SRC_DIR(bundle 目录)。
+  export CONFIG="${CONFIG:-$MAIN_SRC_DIR/.config}"
+  export WORK_DIR="${WORK_DIR:-$MAIN_SRC_DIR/work}"
+  export SOURCE_DIR="${SOURCE_DIR:-$MAIN_SRC_DIR/source}"
+else
+  export SRC_DIR="$PWD"
+  export CONFIG="$SRC_DIR/.config"
+  export SOURCE_DIR="$SRC_DIR/source"
+  export WORK_DIR="$SRC_DIR/work"
+fi
 export KERNEL_INSTALLED="$WORK_DIR/kernel/kernel_installed"
 export GLIBC_OBJECTS="$WORK_DIR/glibc/glibc_objects"
 export GLIBC_INSTALLED="$WORK_DIR/glibc/glibc_installed"
 export BUSYBOX_INSTALLED="$WORK_DIR/busybox/busybox_installed"
 export SYSROOT="$WORK_DIR/sysroot"
 export ROOTFS="$WORK_DIR/rootfs"
+# overlay_rootfs 是所有 bundle 的**共享**安装根, 必须落在 $WORK_DIR 下;
+# 一旦被改写成别处, 构建会"成功"但产物不在预期位置。
 export OVERLAY_ROOTFS="$WORK_DIR/overlay_rootfs"
 export ISOIMAGE="$WORK_DIR/isoimage"
 export ISOIMAGE_OVERLAY="$WORK_DIR/isoimage_overlay"
